@@ -6,7 +6,7 @@ export async function run(g, { skill = 1, maxNights = 20, priorities, mix: mixOv
   g.tutorial = -1;
   const order = priorities ?? ['syr_unlock', 'acorn_hard', 'cat_unlock', 'acorn_reload', 'home_thrifty', 'lan_unlock', 'cat_big',
     'syr_sticky', 'acorn_twin', 'lan_swarm', 'home_harvest', 'owl_unlock', 'owl_keen', 'cat_spicy', 'syr_molasses',
-    'lan_overcharge', 'acorn_golden', 'home_door', 'owl_storm', 'home_interest'];
+    'lan_overcharge', 'acorn_golden', 'home_door', 'home_toolbox', 'owl_storm', 'home_interest'];
   const pts = g.world.path.points;
   // rank buildable tiles by how much road they cover
   const tiles = [];
@@ -67,7 +67,7 @@ export async function run(g, { skill = 1, maxNights = 20, priorities, mix: mixOv
 
 /** iggy's strategy: rush the lantern line and blanket the road in fireflies. */
 export const LANTERN_SPAM = {
-  priorities: ['lan_unlock', 'lan_swarm', 'lan_overcharge', 'acorn_hard', 'home_thrifty', 'home_door', 'home_harvest', 'acorn_reload', 'syr_unlock',
+  priorities: ['lan_unlock', 'lan_swarm', 'lan_overcharge', 'acorn_hard', 'home_thrifty', 'home_door', 'home_toolbox', 'home_harvest', 'acorn_reload', 'syr_unlock',
     'owl_unlock', 'owl_keen', 'cat_unlock', 'cat_big', 'acorn_twin', 'acorn_golden', 'home_interest', 'syr_sticky', 'cat_spicy', 'syr_molasses', 'owl_storm'],
   mix: ['acorn', 'lantern', 'lantern', 'lantern', 'acorn', 'lantern'],
 };

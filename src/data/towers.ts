@@ -72,6 +72,9 @@ export const SELL_REFUND = 0.7;
 /** Firefly zaps lose this much punch with every jump (1st hit 100%, then 70%, 49%, ...). */
 export const CHAIN_FALLOFF = 0.7;
 
+/** Repairs wait for dawn, unless you've learned the Night Toolbox. */
+export const repairsAllowed = (night: boolean, nightRepairs: boolean) => !night || nightRepairs;
+
 /** Emergency repairs while the invasion is on cost this much more. */
 export const NIGHT_REPAIR_MULT = 2;
 

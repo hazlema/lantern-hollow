@@ -38,6 +38,8 @@ export interface TowerView {
   canRepair: boolean;
   /** invasion in progress: repairs are at the doubled emergency rate */
   nightRate: boolean;
+  /** invasion in progress and no Night Toolbox: repairs wait for dawn */
+  repairLocked: boolean;
   /** upgrades are still locked (unlock on this night), or null when available */
   upgradeLockedUntil: number | null;
 }
@@ -190,13 +192,21 @@ export class Hud {
   }
 
   /** Show "Repair all" when anything is damaged. */
-  setRepairAll(count: number, cost: number, affordable: boolean, night = false) {
-    const key = `${count}:${cost}:${affordable}:${night}`;
+  setRepairAll(count: number, cost: number, affordable: boolean, night = false, locked = false) {
+    const key = `${count}:${cost}:${affordable}:${night}:${locked}`;
     if (key === this.repairKey) return;
     this.repairKey = key;
     this.repairAllBtn.style.display = count > 0 ? '' : 'none';
     if (!count) return;
     this.repairAllBtn.innerHTML = '';
+    this.repairAllBtn.classList.toggle('locked', locked);
+    this.repairAllBtn.disabled = locked;
+    if (locked) {
+      add(this.repairAllBtn, ico(ICON.lock), h('span', { text: `Repairs at dawn (${count})` }));
+      this.repairAllBtn.classList.remove('poor', 'night');
+      this.repairAllBtn.title = 'Repairs wait for dawn. Learn the Night Toolbox (Almanac, Homestead) to repair during the invasion.';
+      return;
+    }
     add(this.repairAllBtn, ico(ICON.wrench), h('span', { text: `Repair all (${count})` }), ico(ICON.coin), h('span', { text: String(cost) }),
       night ? h('span', { class: 'rate', html: `${ICON.moon}×2` }) : null);
     this.repairAllBtn.classList.toggle('poor', !affordable);
@@ -299,13 +309,20 @@ export class Hud {
       h('span', { text: v.condition <= 0 ? 'Broken!' : 'Condition' }),
       h('div', { class: 'cbar' }, h('i', { style: `transform:scaleX(${Math.max(0.02, v.condition)})` })),
       h('b', { text: `${Math.round(v.condition * 100)}%` })) : null;
-    const repairBtn = damaged ? h('button', {
-      class: `btn repair ${v.nightRate ? 'night' : ''}`,
-      title: v.nightRate ? 'Emergency repair (R): double price during the invasion. Normal price after dawn.' : 'Repair (R)',
-      on: { click: () => this.act.repairSelected() },
-    }, ico(ICON.wrench), h('span', { text: 'Repair' }), ico(ICON.coin), h('span', { text: String(v.repairCost) }),
-      v.nightRate ? h('span', { class: 'rate', html: `${ICON.moon}×2` }) : null) : null;
-    if (repairBtn) repairBtn.disabled = !v.canRepair;
+    let repairBtn: HTMLButtonElement | null = null;
+    if (damaged && v.repairLocked) {
+      repairBtn = h('button', { class: 'btn repair locked', title: 'Repairs wait for dawn. Learn the Night Toolbox (Almanac, Homestead) to repair during the invasion.' },
+        ico(ICON.lock), h('span', { text: 'Repair at dawn' }));
+      repairBtn.disabled = true;
+    } else if (damaged) {
+      repairBtn = h('button', {
+        class: `btn repair ${v.nightRate ? 'night' : ''}`,
+        title: v.nightRate ? 'Emergency repair (R): double price during the invasion. Normal price after dawn.' : 'Repair (R)',
+        on: { click: () => this.act.repairSelected() },
+      }, ico(ICON.wrench), h('span', { text: 'Repair' }), ico(ICON.coin), h('span', { text: String(v.repairCost) }),
+        v.nightRate ? h('span', { class: 'rate', html: `${ICON.moon}×2` }) : null);
+      repairBtn.disabled = !v.canRepair;
+    }
 
     this.tpanel.innerHTML = '';
     add(this.tpanel,

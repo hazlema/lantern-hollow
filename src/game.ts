@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { audio } from './audio';
 import { Stage, type Quality } from './render/stage';
 import { GameMap } from './data/map';
-import { TOWERS, MAX_LEVEL, SELL_REFUND, UPGRADE_UNLOCK_NIGHT, levelMult, repairCost, upgradeCost, upgradesUnlocked, type TargetMode, type TowerId, TOWER_ORDER } from './data/towers';
+import { TOWERS, MAX_LEVEL, SELL_REFUND, UPGRADE_UNLOCK_NIGHT, levelMult, repairCost, repairsAllowed, upgradeCost, upgradesUnlocked, type TargetMode, type TowerId, TOWER_ORDER } from './data/towers';
 import { TECHS, TECH_BY_ID, TOWER_UNLOCK, canResearch, computeMods, type Mods, type TechId } from './data/tech';
 import { TOTAL_NIGHTS, buildNight, dawnBonus, dawnEmbers, nightTotal } from './data/waves';
 import { buildIsland, type Island } from './world/island';
@@ -196,7 +196,7 @@ export class Game {
       tips: [
         { icon: ICON.sword, html: 'They stop beside the road to chop at a tower: <b>5% a swing</b>, up to 50%. Kill them first!' },
         { icon: ICON.target, html: 'Damaged towers hit softer. At <b>0%</b> a tower <b>explodes</b> and has to be rebuilt.' },
-        { icon: ICON.wrench, html: 'Click a tower and press <b>Repair</b> (R), or use <b>Repair all</b>. Emergency repairs cost <b>double</b> at night; they\u2019re normal price after dawn.' },
+        { icon: ICON.wrench, html: 'Click a tower and press <b>Repair</b> (R), or use <b>Repair all</b>. Repairs wait for <b>dawn</b>, unless you learn the <b>Night Toolbox</b> (double price mid-invasion).' },
       ],
       button: 'Bring it on!',
     }, () => {
@@ -491,6 +491,7 @@ export class Game {
       damage: st.damage, rate: st.rate, range: st.range, next,
       upgradeCost: cost, sellValue: this.sellValue(t), canAfford: cost !== null && this.gold >= cost,
       condition: t.condition, repairCost: this.repairPrice(t), canRepair: this.gold >= this.repairPrice(t), nightRate: this.phase === 'night',
+      repairLocked: !this.canRepairNow(),
       upgradeLockedUntil: upgradesUnlocked(this.nightN) ? null : UPGRADE_UNLOCK_NIGHT,
     };
   }
@@ -559,9 +560,17 @@ export class Game {
     return true;
   }
 
+  private canRepairNow() { return repairsAllowed(this.phase === 'night', this.mods.nightRepairs); }
+
+  private repairsLockedNotice() {
+    audio.play('ui_error');
+    this.hud.toast('Repairs wait for <b>dawn</b>. Learn the <b>Night Toolbox</b> in the Almanac to repair during the invasion.', ICON.lock);
+  }
+
   private repairSelected() {
     const t = this.selected;
     if (!t || t.condition >= 0.999) return;
+    if (!this.canRepairNow()) { this.repairsLockedNotice(); return; }
     if (!this.repairTower(t)) { audio.play('ui_error'); this.hud.poor(); return; }
     audio.play('repair');
     this.refreshUi();
@@ -571,6 +580,7 @@ export class Game {
 
   /** Fix the worst first until the gold runs out. */
   private repairAll() {
+    if (!this.canRepairNow()) { this.repairsLockedNotice(); return; }
     const hurt = this.world.towers.filter((t) => t.condition < 0.999).sort((a, b) => a.condition - b.condition);
     let fixed = 0;
     for (const t of hurt) if (this.repairTower(t)) fixed++;
@@ -800,7 +810,7 @@ export class Game {
       this.hud.refreshBuild(this.mods, this.gold, this.building);
       const hurt = this.world.towers.filter((t) => t.condition < 0.999);
       const total = hurt.reduce((sum, t) => sum + this.repairPrice(t), 0);
-      this.hud.setRepairAll(this.phase === 'title' ? 0 : hurt.length, total, this.gold >= Math.min(...hurt.map((t) => this.repairPrice(t)), Infinity), this.phase === 'night');
+      this.hud.setRepairAll(this.phase === 'title' ? 0 : hurt.length, total, this.gold >= Math.min(...hurt.map((t) => this.repairPrice(t)), Infinity), this.phase === 'night', !this.canRepairNow());
     }
 
     // cottage wobble when hit

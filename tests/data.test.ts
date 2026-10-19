@@ -194,3 +194,24 @@ describe('pacing & progression', () => {
     for (let n = 1; n <= 20; n++) for (const g of buildNight(n)) expect(g.interval).toBeGreaterThanOrEqual(0.65 - 1e-9);
   });
 });
+
+describe('night repairs need the Night Toolbox', () => {
+  it('repairs are always allowed by day, and at night only with the toolbox', async () => {
+    const { repairsAllowed } = await import('../src/data/towers');
+    expect(repairsAllowed(false, false)).toBe(true);
+    expect(repairsAllowed(true, false)).toBe(false);
+    expect(repairsAllowed(true, true)).toBe(true);
+  });
+
+  it('the Night Toolbox sits in Homestead directly under Sturdy Door', () => {
+    const t = TECH_BY_ID.home_toolbox;
+    expect(t.branch).toBe(TECH_BY_ID.home_door.branch);
+    expect(t.requires).toEqual(['home_door']);
+    expect(TECH_BY_ID.home_harvest.requires).toEqual(['home_toolbox']);
+  });
+
+  it('learning it unlocks night repairs', () => {
+    expect(computeMods(new Set()).nightRepairs).toBe(false);
+    expect(computeMods(new Set<TechId>(['home_thrifty', 'home_door', 'home_toolbox'])).nightRepairs).toBe(true);
+  });
+});

@@ -458,3 +458,7 @@ button { font-family: inherit; color: inherit; }
 /* upgrades not unlocked yet */
 .tpanel .acts .btn.locked { --c1: #e6dccb; --c2: #c9bba3; color: var(--ink); text-shadow: none; filter: none; opacity: 1; cursor: help; pointer-events: auto; }
 .tpanel .acts .btn.locked .ico { width: 18px; height: 18px; }
+
+/* repairs locked until dawn (no Night Toolbox) */
+.btn.repair.locked { --c1: #e6dccb; --c2: #c9bba3; color: var(--ink); text-shadow: none; filter: none; opacity: 1; cursor: help; pointer-events: auto; }
+.btn.repair.locked .ico { width: 18px; height: 18px; }

@@ -6,7 +6,7 @@ export type TechId =
   | 'syr_unlock' | 'syr_sticky' | 'syr_molasses'
   | 'lan_unlock' | 'lan_swarm' | 'lan_overcharge'
   | 'owl_unlock' | 'owl_keen' | 'owl_storm'
-  | 'home_thrifty' | 'home_door' | 'home_harvest' | 'home_interest';
+  | 'home_thrifty' | 'home_door' | 'home_toolbox' | 'home_harvest' | 'home_interest';
 
 export interface TechDef {
   id: TechId;
@@ -51,8 +51,9 @@ export const TECHS: TechDef[] = [
 
   T('home_thrifty', 'Thrifty', 'Towers and upgrades cost 10% less.', 1, [], 5, 0),
   T('home_door', 'Sturdy Door', '+5 cottage hearts, and heals 5 right now.', 2, ['home_thrifty'], 5, 1),
-  T('home_harvest', 'Harvest Bonus', '+25% gold from zombies.', 2, ['home_door'], 5, 2),
-  T('home_interest', 'Piggy Bank', 'At dawn, earn 5% interest on unspent gold (max 50).', 3, ['home_harvest'], 5, 3),
+  T('home_toolbox', 'Night Toolbox', 'Lets you repair towers during the invasion (at the emergency rate: double cost). Without it, repairs wait for dawn.', 2, ['home_door'], 5, 2),
+  T('home_harvest', 'Harvest Bonus', '+25% gold from zombies.', 2, ['home_toolbox'], 5, 3),
+  T('home_interest', 'Piggy Bank', 'At dawn, earn 5% interest on unspent gold (max 50).', 3, ['home_harvest'], 5, 4),
 ];
 
 export const TECH_BY_ID = Object.fromEntries(TECHS.map((t) => [t.id, t])) as Record<TechId, TechDef>;
@@ -87,6 +88,8 @@ export interface Mods {
   costMult: number;
   goldMult: number;
   interest: boolean;
+  /** may repair towers mid-invasion (Night Toolbox) */
+  nightRepairs: boolean;
   unlocked: Set<TowerId>;
 }
 
@@ -96,7 +99,7 @@ export function computeMods(owned: ReadonlySet<TechId>): Mods {
   const m: Mods = {
     damage: one(), rate: one(), rangeAll: 1,
     acornShots: 1, acornCrit: 0, splashMult: 1, burn: false, slow: 0.35, molasses: false,
-    chainTargets: 3, overcharge: false, owlPierce: 1, costMult: 1, goldMult: 1, interest: false,
+    chainTargets: 3, overcharge: false, owlPierce: 1, costMult: 1, goldMult: 1, interest: false, nightRepairs: false,
     unlocked: new Set<TowerId>(['acorn']),
   };
   if (has('acorn_hard')) m.damage.acorn *= 1.3;
@@ -118,5 +121,6 @@ export function computeMods(owned: ReadonlySet<TechId>): Mods {
   if (has('home_thrifty')) m.costMult = 0.9;
   if (has('home_harvest')) m.goldMult = 1.25;
   if (has('home_interest')) m.interest = true;
+  if (has('home_toolbox')) m.nightRepairs = true;
   return m;
 }
