@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { CHOP, ZOMBIES, type ZombieDef, type ZombieId } from '../data/zombies';
+import { CHOP, STUN, SYRUP, ZOMBIES, type ZombieDef, type ZombieId } from '../data/zombies';
 import type { Path } from '../data/path';
 import { buildZombie, type ZombieRig } from '../models/zombies';
 
@@ -102,15 +102,30 @@ export class Zombie {
     return this.def.speed * this.speedMul * (this.slowTimer > 0 ? 1 - this.slowAmt : 1);
   }
 
+  /** seconds spent slowed in a row, and the syrup-immune window after licking it off */
+  private syrupT = 0;
+  syrupImmuneT = 0;
+  /** true for the frame the zombie licks the syrup off */
+  licked = false;
+
   slow(amount: number, duration: number) {
+    if (this.syrupImmuneT > 0) return;
     // bosses shrug off half the syrup
     const a = this.boss ? amount * 0.5 : amount;
     this.slowAmt = Math.max(this.slowTimer > 0 ? this.slowAmt : 0, a);
     this.slowTimer = Math.max(this.slowTimer, duration);
   }
 
+  /** seconds left of stun immunity (stun fatigue) */
+  stunImmuneT = 0;
+  /** true for the frame a stun wears off and the zombie gets grumpy (immune) */
+  shrugged = false;
+
   stun(duration: number) {
-    this.stunTimer = Math.max(this.stunTimer, this.boss ? duration * 0.3 : duration);
+    // the Pumpkin King is far too proud to be stunned; everyone else shrugs off stuns for a bit after one
+    // a stun already running isn't refreshed either, or overlapping lanterns would lock zombies forever
+    if (this.boss || this.stunImmuneT > 0 || this.stunTimer > 0) return;
+    this.stunTimer = duration;
   }
 
   /** Returns true when the zombie reached the cottage door. */
@@ -136,7 +151,26 @@ export class Zombie {
     rig.root.scale.setScalar(baseScale * pop * overshoot);
 
     if (this.slowTimer > 0) this.slowTimer -= dt;
-    if (this.stunTimer > 0) this.stunTimer -= dt;
+    this.shrugged = false;
+    this.licked = false;
+    if (this.syrupImmuneT > 0) this.syrupImmuneT -= dt;
+    if (this.slowTimer > 0) {
+      this.syrupT += dt;
+      if (this.syrupT >= SYRUP.maxSlow) {
+        // slurp: syrup gone, and they won't get stuck again for a bit
+        this.slowTimer = 0;
+        this.syrupT = 0;
+        this.syrupImmuneT = SYRUP.immunity;
+        this.licked = true;
+      }
+    } else {
+      this.syrupT = Math.max(0, this.syrupT - dt);
+    }
+    if (this.stunImmuneT > 0) this.stunImmuneT -= dt;
+    if (this.stunTimer > 0) {
+      this.stunTimer -= dt;
+      if (this.stunTimer <= 0) { this.stunImmuneT = STUN.immunity; this.shrugged = true; }
+    }
     if (this.burnTimer > 0) this.burnTimer -= dt;
     const speed = this.currentSpeed();
     this.dist += speed * dt;

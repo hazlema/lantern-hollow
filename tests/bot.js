@@ -1,7 +1,7 @@
 // Balance bot: paste into the page (window.game must exist). Plays the full
 // campaign with a simple greedy strategy and returns a per-night log.
 // Usage from devtools/preview: (await import('/tests/bot.js')).run(window.game, { skill: 1 })
-export async function run(g, { skill = 1, maxNights = 20, priorities } = {}) {
+export async function run(g, { skill = 1, maxNights = 20, priorities, mix: mixOverride } = {}) {
   g.newGame();
   g.tutorial = -1;
   const order = priorities ?? ['syr_unlock', 'acorn_hard', 'cat_unlock', 'acorn_reload', 'home_thrifty', 'lan_unlock', 'cat_big',
@@ -19,7 +19,7 @@ export async function run(g, { skill = 1, maxNights = 20, priorities } = {}) {
   }
   tiles.sort((a, b) => b.cover - a.cover);
   const log = [];
-  const mix = ['acorn', 'acorn', 'catapult', 'sprinkler', 'acorn', 'lantern', 'catapult', 'owl', 'acorn', 'lantern', 'catapult', 'owl'];
+  const mix = mixOverride ?? ['acorn', 'acorn', 'catapult', 'sprinkler', 'acorn', 'lantern', 'catapult', 'owl', 'acorn', 'lantern', 'catapult', 'owl'];
   let mixI = 0;
   let repairs = 0;
   for (let night = 1; night <= maxNights; night++) {
@@ -64,3 +64,10 @@ export async function run(g, { skill = 1, maxNights = 20, priorities } = {}) {
   }
   return log;
 }
+
+/** iggy's strategy: rush the lantern line and blanket the road in fireflies. */
+export const LANTERN_SPAM = {
+  priorities: ['lan_unlock', 'lan_swarm', 'lan_overcharge', 'acorn_hard', 'home_thrifty', 'home_door', 'home_harvest', 'acorn_reload', 'syr_unlock',
+    'owl_unlock', 'owl_keen', 'cat_unlock', 'cat_big', 'acorn_twin', 'acorn_golden', 'home_interest', 'syr_sticky', 'cat_spicy', 'syr_molasses', 'owl_storm'],
+  mix: ['acorn', 'lantern', 'lantern', 'lantern', 'acorn', 'lantern'],
+};

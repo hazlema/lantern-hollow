@@ -53,6 +53,20 @@ export function goldScale(n: number): number {
   return 1 + 0.02 * (n - 1);
 }
 
+/** Stun fatigue: after a stun wears off, a zombie shrugs off new stuns for a while (so stuns can't lock forever). */
+export const STUN = {
+  /** seconds of stun immunity after each stun ends */
+  immunity: 2,
+} as const;
+
+/** Syrup fatigue: zombies lick the syrup off after a while, then can't be slowed for a bit. */
+export const SYRUP = {
+  /** seconds of continuous slow before they lick it off */
+  maxSlow: 3,
+  /** seconds of slow immunity afterwards */
+  immunity: 2,
+} as const;
+
 /** How lumberjacks treat your towers (agreed design: 5% a swing, 10 swings max). */
 export const CHOP = {
   /** chance to stop at each tower it walks past on night 11 (see chopChance) */

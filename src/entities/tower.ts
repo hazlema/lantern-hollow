@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { TOWERS, conditionMult, levelMult, type TargetMode, type TowerDef, type TowerId } from '../data/towers';
+import { CHAIN_FALLOFF, TOWERS, conditionMult, levelMult, type TargetMode, type TowerDef, type TowerId } from '../data/towers';
 import { buildTower, setTowerLevel, type TowerRig } from '../models/towers';
 import { AcornShot, FeatherShot, PumpkinShot } from './projectiles';
 import type { Zombie } from './zombie';
@@ -86,7 +86,7 @@ export class Tower {
     for (const z of ctx.zombies) {
       if (!z.alive) continue;
       const d = Math.hypot(z.pos.x - this.pos.x, z.pos.z - this.pos.z);
-      if (d > range) continue;
+      if (d > range || d < (this.def.minRange ?? 0)) continue;
       let s: number;
       switch (this.targetMode) {
         case 'first': s = z.dist; break;
@@ -184,7 +184,8 @@ export class Tower {
     this.cooldown -= dt;
     this.recoil = Math.max(0, this.recoil - dt * 4);
 
-    if (!this.target || !this.target.alive || Math.hypot(this.target.pos.x - this.pos.x, this.target.pos.z - this.pos.z) > st.range) {
+    const td = this.target ? Math.hypot(this.target.pos.x - this.pos.x, this.target.pos.z - this.pos.z) : 0;
+    if (!this.target || !this.target.alive || td > st.range || td < (this.def.minRange ?? 0)) {
       this.target = this.pickTarget(ctx, st.range);
     } else if (this.targetMode !== 'close') {
       // keep re-evaluating so "first" really tracks the leader
@@ -317,8 +318,9 @@ export class Tower {
       const to = z.aimPoint(new THREE.Vector3());
       ctx.fx.bolts.zap(from, to);
       ctx.fx.glows.spawn({ x: to.x, y: to.y, z: to.z, count: 8, color: [0xdcff73, 0xffffff, 0xa8ff50], size: 0.14, speed: 1.6, up: 0.6, life: 0.3 });
-      ctx.damage(z, st.damage * Math.pow(0.85, i), {});
-      if (ctx.mods.stun) z.stun(0.45);
+      // each jump hits softer; Overcharge doubles the first hit instead of stunning
+      const first = i === 0 && ctx.mods.overcharge ? 2 : 1;
+      ctx.damage(z, st.damage * Math.pow(CHAIN_FALLOFF, i) * first, {});
       from = to;
     });
     ctx.sfx('zap', this.pos, 0.75);

@@ -270,6 +270,15 @@ export class World implements Ctx {
       }
       const leaked = z.update(dt, this.path, time);
       if (z.alive && z.type === 'lumberjack') this.updateLumberjack(z);
+      // licking the syrup off: a slurp of amber droplets means "can't slow me again for a bit"
+      if (z.alive && z.licked) {
+        this.fx.chunks.spawn({ x: z.pos.x, y: z.rig.height * 0.6, z: z.pos.z, count: 6, color: [0xd8861c, 0xf0a840], speed: 1.4, up: 2, size: 0.035, life: 0.6 });
+        this.fx.puffs.spawn({ x: z.pos.x, y: z.rig.height * 0.8, z: z.pos.z, count: 2, color: [0xf6d8a0], size: 0.14, grow: 2, speed: 0.4, up: 0.6, life: 0.5, alpha: 0.6 });
+      }
+      // shaking off a stun: a huff of grumpy steam means "can't stun me again for a bit"
+      if (z.alive && z.shrugged) {
+        this.fx.puffs.spawn({ x: z.pos.x, y: z.rig.height + 0.05, z: z.pos.z, count: 5, color: [0xffffff, 0xe8e4f0], size: 0.16, grow: 2.2, speed: 0.6, up: 1.1, drag: 1.4, life: 0.7, alpha: 0.75, spread: 0.08 });
+      }
       if (leaked && z.alive) {
         z.alive = false;
         this.events.onLeak(z);

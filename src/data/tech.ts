@@ -43,7 +43,7 @@ export const TECHS: TechDef[] = [
 
   T('lan_unlock', 'Firefly Lantern', 'Unlocks the Firefly Lantern: chain zaps between zombies.', 2, [], 3, 0, 'tower_lantern'),
   T('lan_swarm', 'Bigger Swarm', 'Zaps jump to 2 more zombies.', 2, ['lan_unlock'], 3, 1),
-  T('lan_overcharge', 'Overcharge', 'Zaps stun zombies for a moment.', 3, ['lan_swarm'], 3, 2),
+  T('lan_overcharge', 'Overcharge', 'The first zombie each zap hits takes double damage.', 3, ['lan_swarm'], 3, 2),
 
   T('owl_unlock', 'Owl Roost', 'Unlocks the Owl Roost: long range sniper.', 3, [], 4, 0, 'tower_owl'),
   T('owl_keen', 'Keen Eyes', 'Every tower gains +15% range.', 3, ['owl_unlock'], 4, 1),
@@ -82,7 +82,7 @@ export interface Mods {
   slow: number;
   molasses: boolean;
   chainTargets: number;
-  stun: boolean;
+  overcharge: boolean;
   owlPierce: number;
   costMult: number;
   goldMult: number;
@@ -96,7 +96,7 @@ export function computeMods(owned: ReadonlySet<TechId>): Mods {
   const m: Mods = {
     damage: one(), rate: one(), rangeAll: 1,
     acornShots: 1, acornCrit: 0, splashMult: 1, burn: false, slow: 0.35, molasses: false,
-    chainTargets: 3, stun: false, owlPierce: 1, costMult: 1, goldMult: 1, interest: false,
+    chainTargets: 3, overcharge: false, owlPierce: 1, costMult: 1, goldMult: 1, interest: false,
     unlocked: new Set<TowerId>(['acorn']),
   };
   if (has('acorn_hard')) m.damage.acorn *= 1.3;
@@ -111,7 +111,7 @@ export function computeMods(owned: ReadonlySet<TechId>): Mods {
   if (has('syr_molasses')) m.molasses = true;
   if (has('lan_unlock')) m.unlocked.add('lantern');
   if (has('lan_swarm')) m.chainTargets += 2;
-  if (has('lan_overcharge')) m.stun = true;
+  if (has('lan_overcharge')) m.overcharge = true;
   if (has('owl_unlock')) m.unlocked.add('owl');
   if (has('owl_keen')) m.rangeAll = 1.15;
   if (has('owl_storm')) m.owlPierce = 3;

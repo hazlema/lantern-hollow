@@ -12,6 +12,8 @@ export interface TowerDef {
   range: number;
   /** splash radius for area attacks */
   splash?: number;
+  /** artillery can't hit zombies closer than this (tiles) */
+  minRange?: number;
   /** projectile speed in tiles/sec (0 = instant) */
   projectileSpeed: number;
   defaultTarget: TargetMode;
@@ -26,8 +28,8 @@ export const TOWERS: Record<TowerId, TowerDef> = {
   },
   catapult: {
     id: 'catapult', name: 'Pumpkin Catapult', hotkey: '2',
-    blurb: 'Lobs ripe pumpkins that burst in a gooey splash. Great against crowds.',
-    cost: 115, damage: 26, rate: 0.4, range: 3.4, splash: 1.1, projectileSpeed: 6.5, defaultTarget: 'first',
+    blurb: 'Lobs ripe pumpkins that burst in a gooey splash. Great against crowds, but it can\u2019t hit zombies right beside it.',
+    cost: 115, damage: 26, rate: 0.4, range: 3.4, minRange: 1.3, splash: 1.1, projectileSpeed: 6.5, defaultTarget: 'first',
   },
   sprinkler: {
     id: 'sprinkler', name: 'Syrup Sprinkler', hotkey: '3',
@@ -66,6 +68,9 @@ export function levelMult(level: number) {
 }
 
 export const SELL_REFUND = 0.7;
+
+/** Firefly zaps lose this much punch with every jump (1st hit 100%, then 70%, 49%, ...). */
+export const CHAIN_FALLOFF = 0.7;
 
 /** Emergency repairs while the invasion is on cost this much more. */
 export const NIGHT_REPAIR_MULT = 2;
