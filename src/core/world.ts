@@ -5,7 +5,7 @@ import { audio, type SfxName } from '../audio';
 import type { GameMap } from '../data/map';
 import { Path, smooth } from '../data/path';
 import { spawnSchedule } from '../data/waves';
-import { CHOP, chopChance, goldScale, hpScale, type ZombieId } from '../data/zombies';
+import { CHOP, DIFFICULTY, chopChance, goldScale, hpScale, type ZombieId } from '../data/zombies';
 import type { Mods } from '../data/tech';
 import { FirePatch, type Projectile } from '../entities/projectiles';
 import { Tower } from '../entities/tower';
@@ -147,7 +147,7 @@ export class World implements Ctx {
   get hasBoss(): boolean { return this.bossCount > 0; }
 
   private spawn(type: ZombieId) {
-    const z = new Zombie(type, hpScale(this.nightN), goldScale(this.nightN));
+    const z = new Zombie(type, hpScale(this.nightN) * DIFFICULTY.hp, goldScale(this.nightN));
     this.zombies.push(z);
     this.group.add(z.object);
     z.update(0, this.path, 0);

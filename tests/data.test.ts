@@ -104,6 +104,12 @@ describe('waves', () => {
     }
   });
 
+  it('the difficulty dial is a gentle nudge, not a cliff', async () => {
+    const { DIFFICULTY } = await import('../src/data/zombies');
+    expect(DIFFICULTY.hp).toBeGreaterThan(1);
+    expect(DIFFICULTY.hp).toBeLessThanOrEqual(1.1);
+  });
+
   it('scales hp up', () => {
     expect(hpScale(1)).toBe(1);
     expect(hpScale(20)).toBeGreaterThan(4);
