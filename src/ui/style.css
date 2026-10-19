@@ -673,7 +673,7 @@ body.touch .hint-keys, body.touch .card .key, body.touch .settings .keys { displ
   .modal .tally b { font-size: 22px; }
   .modal .row .btn { font-size: 16px; padding: 7px 14px 9px; }
 
-  .book { width: 98vw; height: 96vh; padding: 8px; border-radius: 16px; }
+  .book { width: calc(100vw - 32px); height: calc(100vh - 28px); padding: 8px; border-radius: 16px; }
   .book .pages { inset: 8px; grid-template-columns: 210px 1fr; }
   .book .left { padding: 12px; }
   .book .left h2 { font-size: 24px; }
@@ -694,7 +694,7 @@ body.touch .hint-keys, body.touch .card .key, body.touch .settings .keys { displ
   .node .tick { width: 20px; height: 20px; }
   .book .x, .cabinet .x { width: 40px; height: 40px; top: -10px; right: -10px; }
 
-  .cabinet { width: 98vw; height: 96vh; border-radius: 16px; }
+  .cabinet { width: calc(100vw - 32px); height: calc(100vh - 28px); border-radius: 16px; }
   .cabinet header { padding: 6px 14px 6px 10px; gap: 10px; }
   .cabinet header img { width: 52px; height: 52px; margin: -6px 0 -4px; }
   .cabinet header h2 { font-size: 26px; }
@@ -720,7 +720,7 @@ body.touch .hint-keys, body.touch .card .key, body.touch .settings .keys { displ
   .tour .bubble p { font-size: 13.5px; margin-bottom: 8px; }
   .tour .row .btn { font-size: 15px; padding: 5px 12px 7px; }
 
-  .announce { width: 96vw; max-height: 94vh; overflow-y: auto; grid-template-columns: 170px 1fr; }
+  .announce { width: calc(100vw - 24px); max-height: calc(100vh - 20px); overflow-y: auto; grid-template-columns: 170px 1fr; }
   .announce .art { min-height: 0; border-right: 3px solid var(--ink); border-bottom: 0; }
   .announce .stamp { font-size: 20px; top: 10px; left: 8px; }
   .announce .words { padding: 14px 18px; gap: 6px; }
