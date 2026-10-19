@@ -188,6 +188,7 @@ export class Stage {
   }
   addShake(amount: number) { this.shake = Math.min(0.5, this.shake + amount); }
   get cameraYaw() { return this.yaw; }
+  get cameraZoom() { return this.zoom; }
 
   setNight(n: number, instant = false) {
     this.nightTarget = n;

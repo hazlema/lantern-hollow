@@ -205,8 +205,11 @@ export class Game {
     });
   }
 
+  /** Spotlight box around a world point; w/h are CSS px at the default zoom and scale with it. */
   private worldRect(p: THREE.Vector3, w: number, h: number, lift = 0): DOMRect {
     const s = { x: 0, y: 0 };
+    const z = this.stage.cameraZoom;
+    w *= z; h *= z;
     this.stage.project(p.clone().add(new THREE.Vector3(0, lift, 0)), s);
     return new DOMRect(s.x - w / 2, s.y - h / 2, w, h);
   }
@@ -217,6 +220,7 @@ export class Game {
     this.setBuilding(null);
     this.select(null);
     this.hud.coach(null);
+    this.stage.resetView();
     const el = (sel: string) => () => document.querySelector(sel)?.getBoundingClientRect() ?? null;
     const union = (a: string, b: string) => () => {
       const ra = document.querySelector(a)?.getBoundingClientRect(), rb = document.querySelector(b)?.getBoundingClientRect();
@@ -232,7 +236,7 @@ export class Game {
       { target: el('.buildbar'), title: 'Your Towers', text: 'Pick a tower (or press <kbd>1</kbd>–<kbd>5</kbd>), then click the grass beside the road. Click a built tower to sell it or change who it targets. Upgrades unlock on <b>Night 10</b>.' },
       { target: el('.ctrl .round-btn:nth-child(3)'), title: 'The Almanac', text: 'Spend embers here to unlock new towers and better shots. The badge shows how many pages you can learn.' },
       { target: union('.ctrl .round-btn:nth-child(1)', '.ctrl .round-btn:nth-child(2)'), title: 'Speed & Pause', text: 'Speed nights up to <b>3×</b> or pause whenever you like. You can even build while paused.' },
-      { target: el('.nightfall .btn'), title: 'Nightfall', text: 'Zombies only come when you call them. Get your defences ready, then press <b>Nightfall</b> (or <kbd>Space</kbd>).' },
+      { target: el('.nightfall .btn.plum'), title: 'Nightfall', text: 'Zombies only come when you call them. Get your defences ready, then press <b>Nightfall</b> (or <kbd>Space</kbd>).' },
       { target: () => this.worldRect(new THREE.Vector3(0.5, 0, -0.5), 360, 240), title: 'Look Around', text: '<kbd>Q</kbd> / <kbd>E</kbd> rotate the island, the <b>mouse wheel</b> zooms, and <b>right-drag</b> or <kbd>WASD</kbd> pans.' },
     ];
     this.tour.start(steps, () => {
