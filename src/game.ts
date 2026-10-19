@@ -18,6 +18,8 @@ import { EndScreen, PauseVeil, Settings, TitleScreen } from './ui/screens';
 import { ICON } from './ui/icons';
 import { Tour, type TourStep } from './ui/tour';
 import { Announcer } from './ui/announce';
+import { TrophyCase, TrophyRoom } from './ui/trophies';
+import { dawnTrophies, goldTrophies, researchTrophies, type RunRecord } from './data/trophies';
 
 type Phase = 'title' | 'build' | 'night' | 'over';
 
@@ -35,6 +37,8 @@ interface SaveData {
   kills: number; built: number; endless: boolean;
   /** big announcements this run has already shown */
   announced?: string[];
+  /** what this run has done that rules trophies out */
+  run?: RunRecord;
 }
 
 export class Game {
@@ -54,6 +58,9 @@ export class Game {
   readonly tour: Tour;
   readonly announcer: Announcer;
   private announced = new Set<string>();
+  readonly trophies = new TrophyCase();
+  readonly trophyRoom: TrophyRoom;
+  private run: RunRecord = { hurt: false, upgraded: false };
 
   private timer = new THREE.Timer();
   private time = 0;
@@ -99,7 +106,8 @@ export class Game {
     this.stage.scene.add(this.cursor.group);
 
     this.world = new World(this.map, this.stage, this.fx, this.mods, {
-      onKill: (_z, gold, scr) => {
+      onKill: (z, gold, scr) => {
+        if (z.type === 'king') this.trophyRoom.award(['king']);
         this.gold += gold;
         this.stats.kills++;
         this.hud.floater(scr.x, scr.y, `+${gold}`);
@@ -117,6 +125,7 @@ export class Game {
         this.builtThisDay.delete(t);
         if (this.selected === t) this.select(null);
         this.hud.toast(`A lumberjack blew up your <b>${t.def.name}</b>! You'll need to rebuild it.`, ICON.skull);
+        this.trophyRoom.award(['destroyer']);
         this.refreshUi();
       },
     });
@@ -127,6 +136,7 @@ export class Game {
       cycleSpeed: () => this.cycleSpeed(),
       togglePause: () => this.setPaused(!this.paused),
       openAlmanac: () => this.openAlmanac(),
+      openTrophies: () => this.openTrophies(),
       toggleSettings: () => this.settings.toggle(),
       upgradeSelected: () => this.upgradeSelected(),
       sellSelected: () => this.sellSelected(),
@@ -143,9 +153,11 @@ export class Game {
     });
     this.pauseVeil = new PauseVeil(uiEl, () => this.setPaused(false));
     this.end = new EndScreen(uiEl);
-    this.title = new TitleScreen(uiEl, () => this.newGame(), () => this.continueGame());
+    this.title = new TitleScreen(uiEl, () => this.newGame(), () => this.continueGame(), () => this.openTrophies());
     this.tour = new Tour(uiEl);
     this.announcer = new Announcer(uiEl);
+    this.trophyRoom = new TrophyRoom(uiEl, this.trophies, () => this.hud.setTrophyBadge(this.trophies.unseen));
+    this.hud.setTrophyBadge(this.trophies.unseen);
     this.title.show(true, !!localStorage.getItem(SAVE_KEY));
 
     this.bindInput();
@@ -258,6 +270,8 @@ export class Game {
       this.owned = new Set(s.owned); this.mods = computeMods(this.owned); this.world.mods = this.mods;
       this.stats = { kills: s.kills, built: s.built }; this.endless = s.endless;
       this.announced = new Set(s.announced ?? []);
+      // saves from before trophies: give the benefit of the doubt where the save can't tell
+      this.run = s.run ?? { hurt: s.lives < s.maxLives, upgraded: s.towers.some((t) => t.level > 1) };
       this.nightCount = s.night - 1;
       for (const t of s.towers) {
         const tw = this.placeTower(t.id, t.c, t.r, t.spent, false);
@@ -268,6 +282,7 @@ export class Game {
     }
     this.tutorial = -1;
     this.enterBuild(true);
+    this.trophyRoom.award(researchTrophies(this.owned));
     // older saves past night 10 still deserve the lumberjack warning
     if (this.nightN >= 11) setTimeout(() => this.announceLumberjacks(), 1400);
   }
@@ -281,6 +296,7 @@ export class Game {
     this.owned = new Set(); this.mods = computeMods(this.owned); this.world.mods = this.mods;
     this.stats = { kills: 0, built: 0 };
     this.announced = new Set();
+    this.run = { hurt: false, upgraded: false };
     this.select(null); this.setBuilding(null);
     this.end.hide();
     this.speed = 1; this.hud.setSpeed(1);
@@ -339,8 +355,10 @@ export class Game {
     this.hud.banner('Dawn', `+${bonus + interest} gold · +${em} ember${em > 1 ? 's' : ''}${flawless ? ' · flawless!' : ''}`, 'dawn');
     if (interest) this.hud.toast(`Piggy bank interest: <b>+${interest}</b> gold`, ICON.coin);
     this.nightN++;
+    const won = n === TOTAL_NIGHTS && !this.endless;
+    this.trophyRoom.award([...dawnTrophies(n, this.run), ...(won ? goldTrophies(this.gold) : [])]);
 
-    if (n === TOTAL_NIGHTS && !this.endless) {
+    if (won) {
       this.phase = 'over';
       localStorage.removeItem(SAVE_KEY);
       audio.play('victory');
@@ -368,6 +386,7 @@ export class Game {
   }
 
   private leak(livesLost: number) {
+    this.run.hurt = true;
     this.lives = Math.max(0, this.lives - livesLost);
     audio.play('life_lost');
     this.hud.hurtFlash();
@@ -386,6 +405,7 @@ export class Game {
     localStorage.removeItem(SAVE_KEY);
     audio.play('game_over');
     audio.stopMusic(2);
+    this.trophyRoom.award(['lost']);
     this.setBuilding(null);
     this.select(null);
     setTimeout(() => this.end.show('defeat', { nights: this.nightN - 1, kills: this.stats.kills, towers: this.stats.built, gold: this.gold }, [
@@ -412,7 +432,7 @@ export class Game {
     if (this.phase !== 'build') return;
     const data: SaveData = {
       v: 1, night: this.nightN, gold: this.gold, lives: this.lives, maxLives: this.maxLives, embers: this.embers,
-      owned: [...this.owned], kills: this.stats.kills, built: this.stats.built, endless: this.endless, announced: [...this.announced],
+      owned: [...this.owned], kills: this.stats.kills, built: this.stats.built, endless: this.endless, announced: [...this.announced], run: this.run,
       towers: this.world.towers.map((t) => ({ id: t.id, c: t.c, r: t.r, level: t.level, mode: t.targetMode, spent: t.spent, kills: t.kills, condition: t.condition })),
     };
     localStorage.setItem(SAVE_KEY, JSON.stringify(data));
@@ -524,6 +544,7 @@ export class Game {
     this.gold -= cost;
     t.spent += cost;
     t.setLevel(t.level + 1);
+    this.run.upgraded = true;
     audio.play('upgrade');
     this.fx.glows.spawn({ x: t.pos.x, y: 0.6, z: t.pos.z, count: 24, color: [0xffe27a, 0xfff6c0, 0xffb040], size: 0.14, speed: 1.6, up: 2, life: 0.9, spread: 0.3 });
     this.fx.decals.spawn('ring', t.pos.x, t.pos.z, { color: 0xffd060, r0: 0.3, r1: 1.2, life: 0.5, additive: true, y: 0.04 });
@@ -605,6 +626,13 @@ export class Game {
     if (this.tutorial === 4) { this.tutorial = -1; this.updateCoach(); }
   }
 
+  private openTrophies() {
+    if (this.tour.active || this.announcer.active) return;
+    this.setBuilding(null);
+    this.settings.toggle(false);
+    this.trophyRoom.open();
+  }
+
   private research(id: TechId) {
     if (!canResearch(id, this.owned, this.embers)) return;
     const t = TECH_BY_ID[id];
@@ -618,6 +646,7 @@ export class Game {
     this.almanac.render(this.owned, this.embers);
     const unlocked = TOWER_ORDER.find((tid) => TOWER_UNLOCK[tid] === id);
     this.hud.toast(unlocked ? `New tower: <b>${t.name}</b>! Press <b>${TOWERS[unlocked].hotkey}</b>` : `Learned <b>${t.name}</b>`, ICON.book);
+    this.trophyRoom.award(researchTrophies(this.owned));
     this.refreshUi();
     this.save();
   }
@@ -691,8 +720,10 @@ export class Game {
       if (e.target instanceof HTMLInputElement) return;
       const k = e.key.toLowerCase();
       this.keys.add(k);
+      if (this.trophyRoom.isOpen) { if (k === 'escape' || k === 't') this.trophyRoom.close(); return; }
+      if (this.phase === 'title' && k === 't') { this.openTrophies(); return; }
       if (this.phase === 'title' || this.phase === 'over' || this.tour.active || this.announcer.active) return;
-      if (this.almanac.isOpen) { if (k === 'escape' || k === 't') this.almanac.close(); return; }
+      if (this.almanac.isOpen) { if (k === 'escape' || k === 'b') this.almanac.close(); return; }
       const tower = TOWER_ORDER.find((id) => TOWERS[id].hotkey === k);
       if (tower) { this.setBuilding(this.building === tower ? null : tower); return; }
       switch (k) {
@@ -707,7 +738,8 @@ export class Game {
         case 'e': this.stage.rotate(1); break;
         case 'f': this.cycleSpeed(); break;
         case 'p': this.setPaused(!this.paused); break;
-        case 't': this.openAlmanac(); break;
+        case 'b': this.openAlmanac(); break;
+        case 't': this.openTrophies(); break;
         case 'u': this.upgradeSelected(); break;
         case 'r': this.repairSelected(); break;
         case 'x': case 'delete': this.sellSelected(); break;
@@ -791,7 +823,7 @@ export class Game {
     if (this.keys.has('a') || this.keys.has('arrowleft')) this.stage.panBy(pan, 0);
     if (this.keys.has('d') || this.keys.has('arrowright')) this.stage.panBy(-pan, 0);
 
-    const simulating = (this.phase === 'build' || this.phase === 'night' || this.phase === 'over') && !this.paused && !this.almanac.isOpen;
+    const simulating = (this.phase === 'build' || this.phase === 'night' || this.phase === 'over') && !this.paused && !this.almanac.isOpen && !this.trophyRoom.isOpen;
     if (simulating) {
       const total = dt * this.speed;
       const steps = Math.ceil(total / (1 / 45));

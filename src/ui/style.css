@@ -462,3 +462,86 @@ button { font-family: inherit; color: inherit; }
 /* repairs locked until dawn (no Night Toolbox) */
 .btn.repair.locked { --c1: #e6dccb; --c2: #c9bba3; color: var(--ink); text-shadow: none; filter: none; opacity: 1; cursor: help; pointer-events: auto; }
 .btn.repair.locked .ico { width: 18px; height: 18px; }
+
+/* ------------------------------------------------------------------ trophy room */
+.badge.gold { background: var(--gold); color: var(--ink); }
+.title .menu .btn.cream.small { color: var(--ink); }
+.title .menu .btn.cream.small .ico { width: 22px; height: 22px; }
+
+.trophy-wrap { background: rgba(24, 12, 30, .6); backdrop-filter: blur(4px); z-index: 55; }
+.cabinet {
+  position: relative; width: min(1080px, 96vw); height: min(720px, 92vh); padding: 0; display: flex; flex-direction: column;
+  background: linear-gradient(180deg, #8a5430, #6a3c20); border: 4px solid var(--ink); border-radius: 22px;
+  box-shadow: inset 0 3px 0 rgba(255,255,255,.22), 0 8px 0 rgba(0,0,0,.35), 0 30px 80px rgba(0,0,0,.6);
+  animation: book-in .55s cubic-bezier(.25,1.4,.5,1);
+}
+.cabinet header { display: flex; align-items: center; gap: 14px; padding: 12px 22px 12px 14px; color: #fff3d6; }
+.cabinet header img { width: 84px; height: 84px; object-fit: contain; margin: -26px 0 -6px; filter: drop-shadow(0 4px 3px rgba(0,0,0,.4)); }
+.cabinet header h2 { margin: 0; font: 40px/1 var(--display); text-shadow: 0 3px 0 var(--ink); }
+.cabinet header p { margin: 2px 0 0; font: 500 14px var(--body); opacity: .85; }
+.cabinet .tally { margin-left: auto; margin-right: 26px; text-align: right; }
+.cabinet .tally b { font: 30px var(--display); text-shadow: 0 2px 0 var(--ink); }
+.cabinet .meter { width: 180px; height: 14px; margin-top: 4px; border-radius: 9px; border: 3px solid var(--ink); background: #3a2418; overflow: hidden; }
+.cabinet .meter i { display: block; height: 100%; background: linear-gradient(180deg, #ffe08a, #e8a23a); transform-origin: left; transition: transform .6s cubic-bezier(.3,1.3,.5,1); }
+.shelves {
+  flex: 1; overflow-y: auto; margin: 0 14px 14px; padding: 14px 18px 4px; border-radius: 12px; border: 3px solid var(--ink);
+  background: linear-gradient(180deg, rgba(0,0,0,.18), transparent 30px), radial-gradient(120% 100% at 50% 0%, #4a2c1a, #34200f);
+  box-shadow: inset 0 6px 18px rgba(0,0,0,.45); pointer-events: auto;
+  scrollbar-color: #a86e3e #34200f;
+}
+.shelves section { margin-bottom: 18px; }
+.shelves h3 { margin: 0 0 8px 4px; font: 20px var(--display); color: #ffd890; text-shadow: 0 2px 0 #1a0e06; letter-spacing: .5px; }
+.shelf-row { display: flex; flex-wrap: wrap; gap: 12px; position: relative; z-index: 1; }
+.plank { height: 14px; margin: -8px -8px 0; border-radius: 4px; background: linear-gradient(180deg, #c88a52, #8a5430 60%, #5e3a20); border: 2px solid #2a160a; box-shadow: 0 6px 10px rgba(0,0,0,.45); }
+
+.tcard {
+  --ring: #c98a4a; --ring2: #8a5428;
+  position: relative; width: 150px; padding: 10px 10px 12px; border-radius: 14px; text-align: center;
+  background: linear-gradient(180deg, #fffaf0, var(--cream-2)); border: 3px solid var(--ink);
+  box-shadow: inset 0 2px 0 #fff, 0 4px 0 rgba(0,0,0,.35);
+  transition: transform .18s cubic-bezier(.3,1.6,.5,1);
+}
+.tcard:hover { transform: translateY(-4px) rotate(-1deg); }
+.tcard.tier2 { --ring: #e4e8ee; --ring2: #9aa4b0; }
+.tcard.tier3 { --ring: #ffd860; --ring2: #d0901e; }
+.tcard.tier4 { --ring: #ffe9a0; --ring2: #ff9a3a; }
+.tcard .medal {
+  position: relative; width: 92px; height: 92px; margin: 0 auto 6px; border-radius: 50%;
+  background: radial-gradient(circle at 50% 35%, #fffaf0, #ecd6a8);
+  border: 5px solid var(--ring); box-shadow: 0 0 0 3px var(--ink), inset 0 0 0 2px var(--ring2), 0 5px 0 rgba(74,46,28,.3);
+}
+.tcard.tier4.earned .medal { animation: medal-glow 2.4s ease-in-out infinite; }
+@keyframes medal-glow { 50% { box-shadow: 0 0 0 3px var(--ink), inset 0 0 0 2px var(--ring2), 0 5px 0 rgba(74,46,28,.3), 0 0 26px 6px rgba(255, 190, 80, .8); } }
+.tcard .medal img { position: absolute; inset: 6px; width: calc(100% - 12px); height: calc(100% - 12px); object-fit: contain; filter: drop-shadow(0 3px 2px rgba(0,0,0,.25)); }
+.tcard h4 { margin: 0; font: 17px/1.05 var(--display); }
+.tcard p { margin: 4px 0 6px; font: 500 12.5px/1.3 var(--body); opacity: .85; min-height: 3.9em; }
+.tcard small { font: 600 11px var(--body); opacity: .6; }
+.tcard.locked { background: linear-gradient(180deg, #e8dcc6, #d4c4a6); }
+.tcard.locked .medal { --ring: #b8a888; --ring2: #8a7a5e; background: radial-gradient(circle at 50% 35%, #e8dcc6, #c8b494); }
+.tcard.locked .medal img { filter: grayscale(1) brightness(.55) contrast(.9) opacity(.45); }
+.tcard.locked h4 { opacity: .7; }
+.tcard .lock { position: absolute; right: -6px; bottom: -6px; width: 32px; height: 32px; }
+.tcard .new { position: absolute; top: -10px; right: -10px; z-index: 2; padding: 1px 9px 3px; font: 15px var(--display); color: #fff3d6; background: var(--heart); border: 2px solid var(--ink); border-radius: 10px; rotate: 10deg; text-shadow: 0 1px 0 var(--ink); animation: badge-pop 1.4s ease-in-out infinite; }
+.cabinet .x { position: absolute; top: -18px; right: -18px; width: 52px; height: 52px; z-index: 5; }
+
+/* "Trophy unlocked!" card */
+.trophy-toasts { position: absolute; top: 84px; right: 16px; z-index: 80; display: flex; flex-direction: column; align-items: flex-end; gap: 10px; pointer-events: none; }
+.trophy-toast {
+  position: relative; overflow: hidden; width: 340px; display: flex; align-items: center; gap: 12px; padding: 10px 16px 12px 10px;
+  border-color: #8a5428; box-shadow: inset 0 2px 0 #fffaf0, 0 0 0 3px var(--gold), 0 5px 0 var(--ink-soft), 0 14px 30px rgba(20, 8, 0, .35), 0 0 30px rgba(255, 190, 80, .55);
+  animation: trophy-in .6s cubic-bezier(.3,1.5,.5,1);
+}
+.trophy-toast.out { animation: trophy-out .5s ease forwards; }
+@keyframes trophy-in { from { opacity: 0; transform: translateX(120px) rotate(4deg) scale(.9); } }
+@keyframes trophy-out { to { opacity: 0; transform: translateX(80px); } }
+.trophy-toast .medal { --ring: #ffd860; position: relative; flex: none; width: 74px; height: 74px; border-radius: 50%; background: radial-gradient(circle at 50% 35%, #fffaf0, #ecd6a8); border: 4px solid var(--ring); box-shadow: 0 0 0 3px var(--ink); animation: medal-pop .7s .15s cubic-bezier(.3,1.8,.5,1) both; }
+.trophy-toast.tier1 .medal { --ring: #c98a4a; }
+.trophy-toast.tier2 .medal { --ring: #e4e8ee; }
+.trophy-toast .medal img { position: absolute; inset: 4px; width: calc(100% - 8px); height: calc(100% - 8px); object-fit: contain; }
+@keyframes medal-pop { from { transform: scale(.3) rotate(-30deg); } }
+.trophy-toast .kicker { display: flex; align-items: center; gap: 5px; font: 600 12px var(--body); letter-spacing: 1.5px; text-transform: uppercase; color: var(--orange); }
+.trophy-toast .kicker .ico { width: 18px; height: 18px; }
+.trophy-toast b { display: block; font: 24px/1.05 var(--display); color: #7a2f22; }
+.trophy-toast p { margin: 3px 0 0; font: 500 13px/1.3 var(--body); opacity: .85; }
+.trophy-toast .shine { position: absolute; top: -20%; bottom: -20%; width: 60px; left: -80px; background: linear-gradient(90deg, transparent, rgba(255,255,255,.75), transparent); transform: skewX(-20deg); animation: shine 1.1s .45s ease-out; }
+@keyframes shine { to { left: 120%; } }

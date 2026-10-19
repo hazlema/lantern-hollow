@@ -42,6 +42,7 @@ export type SfxName =
   | 'tower_break'
   | 'repair'
   | 'announce'
+  | 'trophy'
   // game flow
   | 'wave_start'
   | 'wave_clear'
@@ -614,6 +615,23 @@ const RECIPES: Record<SfxName, Recipe> = {
       [86, 89, 93, 98].forEach((m, q) => I.musicBox(k, 1.95 + q * 0.07, mtof(m), 0.1, 1.2));
     },
   },
+  trophy: {
+    // a trophy lands on the shelf: two bright brass hits, a music-box run up the scale and a shimmer of chimes
+    dur: 2.2, variations: 2, rms: -20, send: 0.35, jitter: 0, minInterval: 400, maxVoices: 2, priority: 3,
+    render(k, i) {
+      const root = i === 0 ? 74 : 77;
+      const brass = (t: number, m: number, dur: number, v: number) => I.horn(k, t, mtof(m), dur, v, { a: 0.03, rel: 0.3, bright: 1.35 });
+      brass(0, root - 12, 0.1, 0.26);
+      brass(0.13, root - 5, 0.5, 0.34);
+      brass(0.13, root - 12, 0.5, 0.2);
+      brass(0.13, root - 8, 0.5, 0.18);
+      I.timpani(k, 0.13, mtof(root - 36), 0.35, 0.9);
+      [0, 4, 7, 12, 16].forEach((d, j) => I.musicBox(k, 0.2 + j * 0.06, mtof(root + d), 0.16 + j * 0.02, 1.2));
+      k.noise({ t: 0.25, a: 0.15, d: 0.9, v: 0.06, bp: 7000, q: 1.5, trem: [18, 0.7] });
+      for (let j = 0; j < 7; j++) I.chime(k, 0.45 + k.rand(0, 0.9), mtof(pick(D_PENTA_HIGH, k.r) + (i === 0 ? 0 : 3)), 0.06, 0.4);
+      I.churchBell(k, 0.5, mtof(root + 12), 0.08, 1.4);
+    },
+  },
   place_invalid: {
     dur: 0.3, variations: 4, rms: -23, send: 0.06, jitter: 0.04, minInterval: 120, maxVoices: 2, priority: 3,
     render(k) {
@@ -639,7 +657,7 @@ export const SFX_CATEGORIES: ReadonlyArray<{ label: string; names: readonly SfxN
   { label: 'Towers', names: ['acorn_fire', 'acorn_hit', 'catapult_fire', 'pumpkin_explode', 'syrup_pulse', 'zap', 'owl_fire', 'owl_hit'] },
   { label: 'Zombies', names: ['zombie_groan', 'zombie_hit', 'armor_clank', 'zombie_die', 'brute_stomp', 'boss_roar', 'axe_chop'] },
   { label: 'Repairs', names: ['tower_break', 'repair'] },
-  { label: 'Announcements', names: ['announce'] },
+  { label: 'Announcements', names: ['announce', 'trophy'] },
   { label: 'Game Flow', names: ['wave_start', 'wave_clear', 'life_lost', 'game_over', 'victory'] },
 ];
 
@@ -654,5 +672,5 @@ export const RENDER_ORDER: readonly SfxName[] = [
   'ui_click', 'ui_hover', 'ui_open', 'ui_close', 'place_invalid', 'ui_error', 'build', 'coin', 'wave_start',
   'acorn_fire', 'acorn_hit', 'zombie_groan', 'zombie_hit', 'zombie_die', 'ember', 'ui_page', 'sell', 'upgrade',
   'research', 'catapult_fire', 'pumpkin_explode', 'syrup_pulse', 'zap', 'owl_fire', 'owl_hit', 'armor_clank',
-  'brute_stomp', 'wave_clear', 'life_lost', 'boss_roar', 'axe_chop', 'repair', 'tower_break', 'announce', 'game_over', 'victory',
+  'brute_stomp', 'wave_clear', 'life_lost', 'boss_roar', 'axe_chop', 'repair', 'tower_break', 'announce', 'trophy', 'game_over', 'victory',
 ];

@@ -26,7 +26,8 @@ Then open http://localhost:5173 and click anywhere to start the music.
 - **Gold** builds towers, **embers** (earned each dawn) buy research in the **Almanac**, and **hearts** are your cottage's health.
 - **Click a tower** to change its targeting, sell it, or repair it. Upgrades unlock on **night 10**.
 - **Camera:** `Q`/`E` rotate, mouse wheel zooms, right-drag or `WASD` pans, `Home` resets the view.
-- `F` changes game speed, `P` pauses, `T` opens the Almanac, `Esc` cancels.
+- `F` changes game speed, `P` pauses, `B` opens the Almanac, `T` opens the Trophy Room, `Esc` cancels.
+- **Trophies:** 23 to collect, from surviving milestones and flawless runs to finishing rich (or letting the zombies into the soup). They stay on your shelf across games.
 
 ### Things to watch out for
 

@@ -13,6 +13,7 @@ export interface HudActions {
   cycleSpeed(): void;
   togglePause(): void;
   openAlmanac(): void;
+  openTrophies(): void;
   toggleSettings(): void;
   upgradeSelected(): void;
   sellSelected(): void;
@@ -54,7 +55,7 @@ export class Hud {
   private cards = new Map<TowerId, HTMLElement>();
   private tip: HTMLElement;
   private nfBtn: HTMLButtonElement;
-  private speedBtn: HTMLElement; private pauseBtn: HTMLElement; private almanacBadge: HTMLElement;
+  private speedBtn: HTMLElement; private pauseBtn: HTMLElement; private almanacBadge: HTMLElement; private trophyBadge: HTMLElement;
   private tpanel: HTMLElement;
   private toasts: HTMLElement;
   private bannerEl: HTMLElement;
@@ -101,11 +102,14 @@ export class Hud {
     this.speedBtn = roundBtn(ICON.play, 'Game speed (F)', () => act.cycleSpeed());
     this.speedBtn.append(h('span', { class: 'label', text: '1x' }));
     this.pauseBtn = roundBtn(ICON.pause, 'Pause (P)', () => act.togglePause());
-    const almanac = roundBtn(ICON.book, 'The Almanac — research (T)', () => act.openAlmanac());
+    const almanac = roundBtn(ICON.book, 'The Almanac — research (B)', () => act.openAlmanac());
     this.almanacBadge = h('span', { class: 'badge', style: 'display:none' });
     almanac.append(this.almanacBadge);
+    const trophies = roundBtn(ICON.trophy, 'Trophy Room (T)', () => act.openTrophies());
+    this.trophyBadge = h('span', { class: 'badge gold', style: 'display:none' });
+    trophies.append(this.trophyBadge);
     const settings = roundBtn(ICON.gear, 'Settings', () => act.toggleSettings());
-    const ctrl = h('div', { class: 'ctrl' }, this.speedBtn, this.pauseBtn, almanac, settings);
+    const ctrl = h('div', { class: 'ctrl' }, this.speedBtn, this.pauseBtn, almanac, trophies, settings);
 
     // build bar
     const bar = h('div', { class: 'buildbar panel interactive' });
@@ -345,6 +349,10 @@ export class Hud {
     this.speedBtn.append(h('span', { class: 'label', text: `${s}x` }));
   }
   setPaused(p: boolean) { this.pauseBtn.innerHTML = p ? ICON.play : ICON.pause; }
+  setTrophyBadge(n: number) {
+    this.trophyBadge.style.display = n > 0 ? '' : 'none';
+    this.trophyBadge.textContent = String(n);
+  }
   setAlmanacBadge(n: number) {
     this.almanacBadge.style.display = n > 0 ? '' : 'none';
     this.almanacBadge.textContent = String(n);

@@ -39,6 +39,7 @@ const DESCRIPTIONS: Record<SfxName, string> = {
   tower_break: 'A doomed tower strains, then explodes',
   repair: 'Hammer taps and a good-as-new sparkle',
   announce: 'Herald fanfare for a new threat',
+  trophy: 'Trophy unlocked: brass hits, music-box run, chimes',
   wave_start: 'Church bell toll + distant horn',
   wave_clear: 'Marimba / music-box jingle',
   life_lost: 'Door thud + sad two notes',

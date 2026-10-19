@@ -21,6 +21,7 @@ export const ICON = {
   clock: `<svg viewBox="0 0 32 32"><circle cx="16" cy="16" r="12" fill="#f6ead0" stroke="#4a2e1c" stroke-width="3"/><path d="M16 9v7l5 3" fill="none" stroke="#4a2e1c" stroke-width="3" stroke-linecap="round"/></svg>`,
   target: `<svg viewBox="0 0 32 32"><circle cx="16" cy="16" r="12" fill="#f6ead0" stroke="#4a2e1c" stroke-width="3"/><circle cx="16" cy="16" r="6" fill="#e0524a" stroke="#4a2e1c" stroke-width="2.5"/></svg>`,
   skull: `<svg viewBox="0 0 32 32"><path d="M16 4C9 4 5 9 5 14c0 4 2 6 4 7v4h14v-4c2-1 4-3 4-7 0-5-4-10-11-10z" fill="#c8dca8" stroke="#4a2e1c" stroke-width="3" stroke-linejoin="round"/><circle cx="11.5" cy="15" r="3" fill="#4a2e1c"/><circle cx="20.5" cy="15" r="2.4" fill="#4a2e1c"/><path d="M13 25v-3M16 25v-3M19 25v-3" stroke="#4a2e1c" stroke-width="2"/></svg>`,
+  trophy: `<svg viewBox="0 0 32 32"><path d="M9 5h14v6a7 7 0 0 1-14 0z" fill="#f2b63c" stroke="#4a2e1c" stroke-width="2.5" stroke-linejoin="round"/><path d="M9 7H5c0 4 2 6 4.5 6.5M23 7h4c0 4-2 6-4.5 6.5" fill="none" stroke="#4a2e1c" stroke-width="2.5" stroke-linecap="round"/><path d="M16 18v4M11 27h10l-1.5-5h-7z" fill="#a86e3e" stroke="#4a2e1c" stroke-width="2.5" stroke-linejoin="round"/><path d="M12 8v3" stroke="#fff3c4" stroke-width="2.2" stroke-linecap="round"/></svg>`,
 };
 
 export const iconUrl = (key: string) => `/art/icons/${key}.webp`;

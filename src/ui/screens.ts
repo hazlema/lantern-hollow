@@ -6,7 +6,7 @@ export class TitleScreen {
   readonly el: HTMLDivElement;
   private continueBtn: HTMLButtonElement;
 
-  constructor(root: HTMLElement, onPlay: () => void, onContinue: () => void) {
+  constructor(root: HTMLElement, onPlay: () => void, onContinue: () => void, onTrophies: () => void) {
     const flies = Array.from({ length: 16 }, (_, i) =>
       h('div', { class: 'fly', style: `left:${10 + Math.random() * 85}%;top:${35 + Math.random() * 55}%;animation-delay:${(i * 0.6) % 9}s;animation-duration:${7 + Math.random() * 5}s` }));
     const play = h('button', { class: 'btn interactive', on: { click: onPlay, mouseenter: () => audio.play('ui_hover') } }, ico(ICON.moon), 'New Game');
@@ -16,7 +16,8 @@ export class TitleScreen {
       h('div', { class: 'shade' }),
       ...flies,
       h('div', { class: 'logo' }, h('h1', { html: 'Lantern<span>Hollow</span>' }), h('p', { text: 'A cozy autumn zombie defense' })),
-      h('div', { class: 'menu' }, this.continueBtn, play),
+      h('div', { class: 'menu' }, this.continueBtn, play,
+        h('button', { class: 'btn cream small interactive', on: { click: () => { audio.play('ui_click'); onTrophies(); }, mouseenter: () => audio.play('ui_hover') } }, ico(ICON.trophy), 'Trophy Room')),
       h('div', { class: 'foot', text: 'Q/E rotate · Wheel zoom · Right-drag pan' }),
     );
     root.append(this.el);
@@ -86,7 +87,8 @@ export class Settings {
       h('div', { class: 'keys', html: `
         <kbd>1</kbd>–<kbd>5</kbd> pick tower · <kbd>Space</kbd> nightfall<br>
         <kbd>Q</kbd>/<kbd>E</kbd> rotate · <kbd>WASD</kbd> pan · wheel zoom<br>
-        <kbd>U</kbd> upgrade · <kbd>R</kbd> repair · <kbd>X</kbd> sell · <kbd>T</kbd> almanac<br>
+        <kbd>U</kbd> upgrade · <kbd>R</kbd> repair · <kbd>X</kbd> sell<br>
+        <kbd>B</kbd> almanac · <kbd>T</kbd> trophies<br>
         <kbd>F</kbd> speed · <kbd>P</kbd> pause · <kbd>Esc</kbd> cancel` }),
       h('div', { style: 'margin-top:12px;display:flex;justify-content:space-between;gap:8px' },
         h('button', { class: 'btn cream', text: 'Show tutorial', style: 'font-size:15px;padding:6px 12px 8px', on: { click: () => { this.toggle(false); onTour(); } } }),
