@@ -1,0 +1,17 @@
+{
+  "name": "Lantern Hollow",
+  "short_name": "Lantern Hollow",
+  "description": "A cozy autumn zombie tower defense.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "fullscreen",
+  "display_override": ["fullscreen", "standalone"],
+  "orientation": "landscape",
+  "background_color": "#1b1424",
+  "theme_color": "#1b1424",
+  "icons": [
+    { "src": "/art/app-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/art/app-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/art/app-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

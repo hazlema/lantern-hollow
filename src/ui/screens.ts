@@ -1,6 +1,7 @@
 import { audio } from '../audio';
 import { h, ico } from './dom';
 import { ICON } from './icons';
+import { canFullscreen, isFullscreen, isIOS, isInstalled, isTouch, onFullscreenChange, toggleFullscreen } from './device';
 
 export class TitleScreen {
   readonly el: HTMLDivElement;
@@ -18,9 +19,26 @@ export class TitleScreen {
       h('div', { class: 'logo' }, h('h1', { html: 'Lantern<span>Hollow</span>' }), h('p', { text: 'A cozy autumn zombie defense' })),
       h('div', { class: 'menu' }, this.continueBtn, play,
         h('button', { class: 'btn cream small interactive', on: { click: () => { audio.play('ui_click'); onTrophies(); }, mouseenter: () => audio.play('ui_hover') } }, ico(ICON.trophy), 'Trophy Room')),
-      h('div', { class: 'foot', text: 'Q/E rotate · Wheel zoom · Right-drag pan' }),
+      h('div', { class: 'foot', text: isTouch ? 'Drag to look around · Pinch to zoom' : 'Q/E rotate · Wheel zoom · Right-drag pan' }),
+      this.screenButton(),
     );
     root.append(this.el);
+  }
+
+  /** Top-right corner: go fullscreen, or (iPhone, which can't) explain Add to Home Screen. */
+  private screenButton(): HTMLElement | null {
+    if (isInstalled()) return null;
+    if (canFullscreen) {
+      const btn = h('button', { class: 'round-btn corner interactive', html: ICON.expand, title: 'Fullscreen', on: { click: () => { audio.play('ui_click'); void toggleFullscreen(); } } });
+      onFullscreenChange(() => { btn.innerHTML = isFullscreen() ? ICON.shrink : ICON.expand; });
+      return btn;
+    }
+    if (!isIOS) return null;
+    const how = h('div', { class: 'install panel hide' },
+      h('h4', { text: 'Play fullscreen' }),
+      h('p', { html: `Tap <span class="ico">${ICON.share}</span> <b>Share</b> in Safari, then <b>Add to Home Screen</b>. Open Lantern Hollow from your home screen and it fills the whole screen.` }));
+    const btn = h('button', { class: 'btn cream small corner interactive', on: { click: () => { audio.play('ui_click'); how.classList.toggle('hide'); } } }, ico(ICON.expand), 'Fullscreen');
+    return h('div', {}, btn, how);
   }
 
   show(on: boolean, hasSave = false) {

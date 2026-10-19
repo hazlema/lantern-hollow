@@ -19,6 +19,7 @@ import { ICON } from './ui/icons';
 import { Tour, type TourStep } from './ui/tour';
 import { Announcer } from './ui/announce';
 import { TrophyCase, TrophyRoom } from './ui/trophies';
+import { isTouch } from './ui/device';
 import { dawnTrophies, goldTrophies, researchTrophies, type RunRecord } from './data/trophies';
 
 type Phase = 'title' | 'build' | 'night' | 'over';
@@ -83,6 +84,8 @@ export class Game {
 
   // interaction
   private building: TowerId | null = null;
+  /** touch: the tile a first tap previewed; a second tap on it builds */
+  private pendingTile: string | null = null;
   private selected: Tower | null = null;
   private tileTowers = new Map<string, Tower>();
   private builtThisDay = new Set<Tower>();
@@ -138,6 +141,7 @@ export class Game {
       openAlmanac: () => this.openAlmanac(),
       openTrophies: () => this.openTrophies(),
       toggleSettings: () => this.settings.toggle(),
+      rotate: (dir) => this.stage.rotate(dir),
       upgradeSelected: () => this.upgradeSelected(),
       sellSelected: () => this.sellSelected(),
       setTargetMode: (m) => { if (this.selected) { this.selected.targetMode = m; this.updatePanel(true); } },
@@ -208,7 +212,7 @@ export class Game {
       tips: [
         { icon: ICON.sword, html: 'They stop beside the road to chop at a tower: <b>5% a swing</b>, up to 50%. Kill them first!' },
         { icon: ICON.target, html: 'Damaged towers hit softer. At <b>0%</b> a tower <b>explodes</b> and has to be rebuilt.' },
-        { icon: ICON.wrench, html: 'Click a tower and press <b>Repair</b> (R), or use <b>Repair all</b>. Repairs wait for <b>dawn</b>, unless you learn the <b>Night Toolbox</b> (double price mid-invasion).' },
+        { icon: ICON.wrench, html: (isTouch ? 'Tap a tower and press <b>Repair</b>' : 'Click a tower and press <b>Repair</b> (R)') + ', or use <b>Repair all</b>. Repairs wait for <b>dawn</b>, unless you learn the <b>Night Toolbox</b> (double price mid-invasion).' },
       ],
       button: 'Bring it on!',
     }, () => {
@@ -245,11 +249,15 @@ export class Game {
       { target: () => this.worldRect(this.island.cryptDoor, 170, 170, 0.3), title: 'The Crypt', text: 'Zombies rise from here once you call the night, then follow the <b>dirt road</b>.' },
       { target: () => this.worldRect(this.island.porch, 200, 180, 0.6), title: 'Your Cottage', text: 'Every zombie that reaches the door costs <b>hearts</b>. Big ones cost more!' },
       { target: el('.res'), title: 'Gold, Embers & Hearts', text: '<b>Gold</b> builds and upgrades towers. <b>Embers</b>, earned at each dawn, buy research. Run out of <b>hearts</b> and the hollow falls.' },
-      { target: el('.buildbar'), title: 'Your Towers', text: 'Pick a tower (or press <kbd>1</kbd>–<kbd>5</kbd>), then click the grass beside the road. Click a built tower to sell it or change who it targets. Upgrades unlock on <b>Night 10</b>.' },
+      { target: el('.buildbar'), title: 'Your Towers', text: isTouch
+        ? 'Pick a tower, then tap the grass beside the road to see where it goes, and tap again to build. Tap a built tower to sell it or change who it targets. Upgrades unlock on <b>Night 10</b>.'
+        : 'Pick a tower (or press <kbd>1</kbd>–<kbd>5</kbd>), then click the grass beside the road. Click a built tower to sell it or change who it targets. Upgrades unlock on <b>Night 10</b>.' },
       { target: el('.ctrl .round-btn:nth-child(3)'), title: 'The Almanac', text: 'Spend embers here to unlock new towers and better shots. The badge shows how many pages you can learn.' },
       { target: union('.ctrl .round-btn:nth-child(1)', '.ctrl .round-btn:nth-child(2)'), title: 'Speed & Pause', text: 'Speed nights up to <b>3×</b> or pause whenever you like. You can even build while paused.' },
-      { target: el('.nightfall .btn.plum'), title: 'Nightfall', text: 'Zombies only come when you call them. Get your defences ready, then press <b>Nightfall</b> (or <kbd>Space</kbd>).' },
-      { target: () => this.worldRect(new THREE.Vector3(0.5, 0, -0.5), 360, 240), title: 'Look Around', text: '<kbd>Q</kbd> / <kbd>E</kbd> rotate the island, the <b>mouse wheel</b> zooms, and <b>right-drag</b> or <kbd>WASD</kbd> pans.' },
+      { target: el('.nightfall .btn.plum'), title: 'Nightfall', text: `Zombies only come when you call them. Get your defences ready, then press <b>Nightfall</b>${isTouch ? '' : ' (or <kbd>Space</kbd>)'}.` },
+      { target: () => this.worldRect(new THREE.Vector3(0.5, 0, -0.5), 360, 240), title: 'Look Around', text: isTouch
+        ? '<b>Drag</b> to look around, <b>pinch</b> to zoom, and the <b>arrow buttons</b> on the right turn the island.'
+        : '<kbd>Q</kbd> / <kbd>E</kbd> rotate the island, the <b>mouse wheel</b> zooms, and <b>right-drag</b> or <kbd>WASD</kbd> pans.' },
     ];
     this.tour.start(steps, () => {
       localStorage.setItem(TUT_KEY, '1');
@@ -446,6 +454,7 @@ export class Game {
   setBuilding(id: TowerId | null) {
     if (id && !this.mods.unlocked.has(id)) { audio.play('ui_error'); return; }
     this.building = id;
+    this.pendingTile = null;
     if (id) this.select(null);
     this.cursor.setGrid(!!id);
     if (!id) this.cursor.hide();
@@ -663,8 +672,10 @@ export class Game {
 
   private updateCoach() {
     const steps: (string | null)[] = [
-      'Pick the <b>Acorn Turret</b> from the bar below (or press <b>1</b>)',
-      'Place it on the grass beside the <b>dirt road</b>. Zombies walk the road to your cottage!',
+      `Pick the <b>Acorn Turret</b> from the bar below${isTouch ? '' : ' (or press <b>1</b>)'}`,
+      isTouch
+        ? 'Tap the grass beside the <b>dirt road</b> to preview, then tap again to build. Zombies walk the road to your cottage!'
+        : 'Place it on the grass beside the <b>dirt road</b>. Zombies walk the road to your cottage!',
       'Nice! Build another if you like, then press <b>Nightfall</b> when you’re ready.',
       null,
       'You survived! Spend <b>embers</b> in the <b>Almanac</b> (book icon, top-right) to unlock new towers.',
@@ -688,28 +699,63 @@ export class Game {
 
   private bindInput() {
     const c = this.stage.canvas;
-    let down: { x: number; y: number; btn: number; moved: boolean } | null = null;
+    // every finger (or the mouse) currently down, and where it was last seen
+    const pts = new Map<number, { x: number; y: number }>();
+    let down: { x: number; y: number; btn: number; moved: boolean; touch: boolean } | null = null;
+    let pinch: { dist: number; x: number; y: number } | null = null;
+    /** a two-finger gesture happened: swallow the tap when the fingers lift */
+    let gesture = false;
+    const measure = () => {
+      const [a, b] = [...pts.values()];
+      return { dist: Math.hypot(a.x - b.x, a.y - b.y) || 1, x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
+    };
 
     c.addEventListener('pointerdown', (e) => {
-      down = { x: e.clientX, y: e.clientY, btn: e.button, moved: false };
+      pts.set(e.pointerId, { x: e.clientX, y: e.clientY });
       c.setPointerCapture(e.pointerId);
+      if (pts.size === 1) {
+        down = { x: e.clientX, y: e.clientY, btn: e.button, moved: false, touch: e.pointerType === 'touch' };
+        gesture = false;
+      } else if (pts.size === 2) {
+        pinch = measure();
+        gesture = true;
+        down = null;
+      }
     });
     c.addEventListener('pointermove', (e) => {
-      if (down) {
-        const dx = e.clientX - down.x, dy = e.clientY - down.y;
-        if (!down.moved && Math.hypot(dx, dy) > 6) down.moved = true;
-        if (down.moved) {
-          this.stage.panBy(e.movementX, e.movementY);
+      const last = pts.get(e.pointerId);
+      if (last) {
+        const dx = e.clientX - last.x, dy = e.clientY - last.y;
+        last.x = e.clientX; last.y = e.clientY;
+        // two fingers: pinch to zoom, drag together to pan
+        if (pinch && pts.size >= 2) {
+          const m = measure();
+          this.stage.zoomBy(m.dist / pinch.dist);
+          this.stage.panBy(m.x - pinch.x, m.y - pinch.y);
+          pinch = m;
           return;
         }
+        if (down) {
+          if (!down.moved && Math.hypot(e.clientX - down.x, e.clientY - down.y) > (down.touch ? 10 : 6)) down.moved = true;
+          if (down.moved) { this.stage.panBy(dx, dy); return; }
+        }
       }
-      this.updateHover(e.clientX, e.clientY);
+      if (e.pointerType !== 'touch') this.updateHover(e.clientX, e.clientY);
     });
-    c.addEventListener('pointerup', (e) => {
+    const lift = (e: PointerEvent) => {
+      pts.delete(e.pointerId);
+      if (pts.size < 2) pinch = null;
+      if (gesture) { if (!pts.size) gesture = false; return; }
       const d = down; down = null;
+      return d;
+    };
+    c.addEventListener('pointercancel', (e) => { lift(e); down = null; });
+    c.addEventListener('pointerup', (e) => {
+      const d = lift(e);
       if (!d || d.moved || this.phase === 'title' || this.phase === 'over') return;
       if (d.btn === 2) { if (this.building) this.setBuilding(null); else this.select(null); return; }
       if (d.btn !== 0) return;
+      if (d.touch && this.building && this.previewTap(e.clientX, e.clientY)) return;
       this.click(e.clientX, e.clientY);
     });
     c.addEventListener('contextmenu', (e) => e.preventDefault());
@@ -776,6 +822,18 @@ export class Game {
     }
   }
 
+  /** Touch has no hover: the first tap on a tile shows the build preview, the second builds. */
+  private previewTap(x: number, y: number): boolean {
+    const t = this.tileAt(x, y);
+    const key = t ? `${t.c},${t.r}` : null;
+    if (key && key === this.pendingTile) return false;
+    this.pendingTile = key;
+    this.lastMouse = { x, y };
+    this.updateHover(x, y);
+    if (key) audio.play('ui_hover');
+    return true;
+  }
+
   private click(x: number, y: number) {
     const t = this.tileAt(x, y);
     if (this.building) {
@@ -833,7 +891,7 @@ export class Game {
     }
 
     // re-evaluate hover while the camera glides
-    if (this.building) this.updateHover(this.lastMouse.x, this.lastMouse.y);
+    if (this.building && (!isTouch || this.pendingTile)) this.updateHover(this.lastMouse.x, this.lastMouse.y);
 
     this.panelT -= dt;
     if (this.panelT <= 0) {

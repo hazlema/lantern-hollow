@@ -31,6 +31,8 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #1b1424; use
 #stage canvas { display: block; }
 #ui { position: fixed; inset: 0; pointer-events: none; font-family: var(--body); color: var(--ink); }
 #ui .interactive, #ui button, #ui input { pointer-events: auto; }
+/* anything hidden is out of the way, buttons inside it included (they'd otherwise eat clicks while invisible) */
+#ui .hide, #ui .hide * { pointer-events: none !important; }
 button { font-family: inherit; color: inherit; }
 
 /* ------------------------------------------------------------------ panels */
@@ -545,3 +547,192 @@ button { font-family: inherit; color: inherit; }
 .trophy-toast p { margin: 3px 0 0; font: 500 13px/1.3 var(--body); opacity: .85; }
 .trophy-toast .shine { position: absolute; top: -20%; bottom: -20%; width: 60px; left: -80px; background: linear-gradient(90deg, transparent, rgba(255,255,255,.75), transparent); transform: skewX(-20deg); animation: shine 1.1s .45s ease-out; }
 @keyframes shine { to { left: 120%; } }
+
+/* ------------------------------------------------------------------ phones & tablets */
+html, body { overscroll-behavior: none; -webkit-tap-highlight-color: transparent; }
+#stage canvas { touch-action: none; }
+img { -webkit-touch-callout: none; }
+body.touch .hint-keys, body.touch .card .key, body.touch .settings .keys { display: none; }
+
+/* selecting a tower swaps the build bar for its panel on small screens (see compact layout) */
+.buildbar { transition: opacity .2s, transform .25s cubic-bezier(.3,1.4,.5,1); }
+
+/* touch: camera rotate buttons */
+.cam { position: absolute; right: 18px; top: 50%; transform: translateY(-50%); display: flex; flex-direction: column; gap: 10px; }
+
+/* title-screen corner: fullscreen, or how to install on iPhone */
+.title .corner { position: absolute; top: 16px; right: 16px; }
+.title .btn.corner { font-size: 16px; padding: 7px 14px 9px; color: var(--ink); }
+.title .btn.corner .ico { width: 18px; height: 18px; }
+.title .install { position: absolute; top: 70px; right: 16px; width: 290px; padding: 12px 16px 14px; transition: opacity .2s, transform .2s; }
+.title .install.hide { opacity: 0; transform: translateY(-6px); pointer-events: none !important; }
+.title .install h4 { margin: 0 0 6px; font: 20px var(--display); color: #7a2f22; }
+.title .install p { margin: 0; font: 500 14px/1.45 var(--body); }
+.title .install .ico { display: inline-block; width: 18px; height: 18px; vertical-align: -3px; }
+.title .install .ico svg { width: 100%; height: 100%; }
+
+/* portrait phones: please turn sideways */
+.turn-phone { display: none; }
+@media (orientation: portrait) and (pointer: coarse) and (max-width: 600px) {
+  .turn-phone { position: fixed; inset: 0; z-index: 999; display: grid; place-items: center; text-align: center; padding: 30px;
+    background: radial-gradient(circle at 50% 40%, #3a2a4a, #1b1424); color: #fff3d6; font-family: var(--body); }
+  .turn-phone div::before { content: ''; display: block; width: 46px; height: 80px; margin: 0 auto 26px; border: 5px solid #ffd07a; border-radius: 10px;
+    box-shadow: 0 0 24px rgba(255, 190, 80, .5); animation: turn-phone 2.4s ease-in-out infinite; }
+  .turn-phone b { display: block; font: 30px var(--display); color: #ffd07a; text-shadow: 0 3px 0 #000; }
+  .turn-phone span { display: block; margin-top: 8px; font: 500 16px var(--body); opacity: .85; }
+}
+@keyframes turn-phone { 0%, 25% { transform: rotate(0); } 55%, 85% { transform: rotate(-90deg); } 100% { transform: rotate(0); } }
+
+/* ---- compact layout: phones in landscape (and other short windows) */
+@media (max-height: 520px) {
+  .res { top: 8px; left: 8px; gap: 6px; }
+  .pill { padding: 2px 10px 2px 3px; min-width: 62px; font-size: 17px; gap: 5px; border-width: 2.5px; border-radius: 13px; }
+  .pill .ico { width: 24px; height: 24px; }
+  .ctrl { top: 8px; right: 8px; gap: 6px; }
+  .round-btn { width: 40px; height: 40px; border-width: 2.5px; }
+  .round-btn svg { width: 22px; height: 22px; }
+  .round-btn .label { font-size: 11px; padding: 0 4px; bottom: -5px; right: -5px; }
+  .badge { min-width: 18px; height: 18px; font-size: 11px; line-height: 15px; top: -5px; right: -5px; }
+
+  .night-plaque { top: 6px; gap: 4px; }
+  .night-plaque .plaque { font-size: 18px; padding: 3px 14px 5px 8px; gap: 6px; border-radius: 12px; }
+  .night-plaque .plaque .ico { width: 24px; height: 24px; }
+  .night-plaque .plaque small { font-size: 13px; }
+  .preview { padding: 2px 8px; gap: 4px; }
+  .preview .lbl { font-size: 10px; }
+  .preview .z { width: 30px; height: 30px; }
+  .preview .z b { font-size: 11px; }
+  .progress { width: 190px; height: 13px; border-width: 2.5px; }
+  .progress span { font-size: 10px; line-height: 9px; }
+  .bossbar { padding: 2px 10px 3px 4px; }
+  .bossbar img { width: 36px; height: 36px; }
+  .bossbar b { font-size: 13px; }
+  .bossbar .bar { width: 170px; height: 12px; }
+
+  .buildbar { left: 8px; bottom: 6px; transform: none; padding: 6px 8px; gap: 6px; border-radius: 14px; }
+  .buildbar .card { width: 76px; padding: 2px 4px 5px; border-radius: 11px; border-width: 2.5px; }
+  .card img { width: 46px; height: 46px; margin-top: -12px; }
+  .card .nm { font-size: 10.5px; height: 24px; }
+  .card .cost { font-size: 14px; }
+  .card .cost .ico { width: 14px; height: 14px; }
+  .card.locked .cost { font-size: 10px; }
+  .card .lock { top: 8px; width: 24px; height: 24px; }
+  .card.sel { transform: translateY(-6px); }
+  .hud.has-sel .buildbar { opacity: 0; transform: translateY(20px); pointer-events: none !important; }
+  .hud.has-sel .buildbar * { pointer-events: none !important; }
+
+  .nightfall { right: 8px; bottom: 8px; gap: 6px; }
+  .nightfall .btn { font-size: 18px; padding: 8px 16px 10px; }
+  .btn.repair.small { font-size: 13px; padding: 5px 10px 7px; }
+  .cam { right: 8px; gap: 8px; }
+
+  .tpanel { left: 8px; bottom: 8px; width: 262px; padding: 10px 12px 12px; }
+  .tpanel header { margin: -24px 0 4px; gap: 8px; }
+  .tpanel header img { width: 56px; height: 56px; }
+  .tpanel header h3 { font-size: 18px; margin-top: 14px; }
+  .stars svg { width: 15px; height: 15px; }
+  .tpanel .kills { font-size: 11px; }
+  .stats { font-size: 12px; gap: 1px 8px; }
+  .seg { margin: 6px 0 8px; border-width: 2.5px; }
+  .seg button { font-size: 12px; padding: 3px 0; }
+  .tpanel .acts .btn { font-size: 14px; padding: 5px 6px 7px; }
+  .tpanel .cond { margin: 0 0 4px; font-size: 11px; }
+
+  .tip { width: 220px; padding: 8px 10px; font-size: 12.5px; }
+  .tip h4 { font-size: 17px; }
+  .coach { left: 8px; bottom: 112px; transform: none; max-width: min(430px, 70vw); padding: 7px 12px; font-size: 13px; text-align: left; }
+  .coach:not(.hide) { animation: none; }
+  .coach.hide { transform: translateY(8px); }
+  .coach::after { left: 40px; }
+  .toasts { top: 52px; }
+  .toast { padding: 5px 12px; font-size: 13px; }
+  .toast .ico { width: 18px; height: 18px; }
+  .banner { top: 28%; }
+  .banner h1 { font-size: 54px; }
+  .banner h2 { font-size: 16px; }
+  .pause-veil h2 { font-size: 48px; }
+
+  .settings { top: 54px; right: 8px; width: 260px; padding: 10px 14px; max-height: calc(100% - 62px); overflow-y: auto; }
+  .settings label { margin: 4px 0; }
+
+  .title .logo { top: 6%; left: 5%; }
+  .title .logo h1 { font-size: 62px; }
+  .title .logo p { font-size: 15px; margin-top: 10px; }
+  .title .menu { bottom: 7%; gap: 8px; }
+  .title .menu .btn { font-size: 20px; padding: 7px 20px 9px; }
+  .title .menu .btn.small { font-size: 14px; padding: 5px 12px 7px; }
+  .title .foot { font-size: 11px; bottom: 8px; }
+  .title .corner { top: 10px; right: 10px; }
+  .title .install { top: 58px; right: 10px; width: 260px; }
+
+  .modal { width: min(480px, 92vw); padding: 12px 18px 14px; }
+  .modal h2 { font-size: 30px; }
+  .modal .sub { font-size: 14px; margin: 4px 0 8px; }
+  .modal .art { height: 70px; margin: 0 -18px 10px; }
+  .modal .tally { gap: 16px; margin-bottom: 10px; }
+  .modal .tally b { font-size: 22px; }
+  .modal .row .btn { font-size: 16px; padding: 7px 14px 9px; }
+
+  .book { width: 98vw; height: 96vh; padding: 8px; border-radius: 16px; }
+  .book .pages { inset: 8px; grid-template-columns: 210px 1fr; }
+  .book .left { padding: 12px; }
+  .book .left h2 { font-size: 24px; }
+  .book .left .lead { display: none; }
+  .book .embers { font-size: 22px; padding: 4px 10px; margin-top: 8px; }
+  .book .embers .ico { width: 26px; height: 26px; }
+  .book .detail { min-height: 0; padding: 8px; gap: 5px; }
+  .book .detail img { width: 44px; height: 44px; }
+  .book .detail h3 { font-size: 17px; }
+  .book .detail p { font-size: 12.5px; }
+  .book .detail .btn { font-size: 15px; padding: 6px 10px 8px; }
+  .book .right { padding: 8px 10px; }
+  .book .branch { gap: 9px; }
+  .book .branch h5 { font-size: 12px; height: 16px; }
+  .node { width: 46px; height: 46px; border-width: 3px; }
+  .node .cost { font-size: 11px; bottom: -8px; }
+  .node .cost .ico { width: 12px; height: 12px; }
+  .node .tick { width: 20px; height: 20px; }
+  .book .x, .cabinet .x { width: 40px; height: 40px; top: -10px; right: -10px; }
+
+  .cabinet { width: 98vw; height: 96vh; border-radius: 16px; }
+  .cabinet header { padding: 6px 14px 6px 10px; gap: 10px; }
+  .cabinet header img { width: 52px; height: 52px; margin: -6px 0 -4px; }
+  .cabinet header h2 { font-size: 26px; }
+  .cabinet header p { display: none; }
+  .cabinet .tally { margin-right: 30px; }
+  .cabinet .tally b { font-size: 20px; }
+  .cabinet .meter { width: 120px; height: 11px; }
+  .shelves { margin: 0 8px 8px; padding: 8px 10px 2px; }
+  .shelves h3 { font-size: 16px; }
+  .tcard { width: 118px; padding: 6px 6px 8px; }
+  .tcard .medal { width: 62px; height: 62px; border-width: 4px; }
+  .tcard h4 { font-size: 14px; }
+  .tcard p { font-size: 11px; }
+  .tcard small { font-size: 10px; }
+  .trophy-toasts { top: 52px; right: 8px; }
+  .trophy-toast { width: 270px; padding: 6px 12px 8px 6px; gap: 8px; }
+  .trophy-toast .medal { width: 54px; height: 54px; }
+  .trophy-toast b { font-size: 18px; }
+  .trophy-toast p { font-size: 11.5px; }
+
+  .tour .bubble { width: 290px; padding: 10px 12px; }
+  .tour .bubble h4 { font-size: 19px; }
+  .tour .bubble p { font-size: 13.5px; margin-bottom: 8px; }
+  .tour .row .btn { font-size: 15px; padding: 5px 12px 7px; }
+
+  .announce { width: 96vw; max-height: 94vh; overflow-y: auto; grid-template-columns: 170px 1fr; }
+  .announce .art { min-height: 0; border-right: 3px solid var(--ink); border-bottom: 0; }
+  .announce .stamp { font-size: 20px; top: 10px; left: 8px; }
+  .announce .words { padding: 14px 18px; gap: 6px; }
+  .announce .kicker { font-size: 11px; }
+  .announce h2 { font-size: 32px; }
+  .announce .lead { font-size: 15px; }
+  .announce .tips { padding: 8px 10px; gap: 5px; margin: 2px 0; }
+  .announce .tips li { font-size: 12.5px; }
+  .announce .tips .ico { width: 20px; height: 20px; }
+  .announce .btn { font-size: 18px; padding: 7px 18px 9px; }
+}
+/* very narrow landscape phones: the night sign drops below the top-right buttons */
+@media (max-height: 520px) and (max-width: 720px) {
+  .night-plaque { top: 54px; }
+}

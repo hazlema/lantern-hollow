@@ -27,6 +27,7 @@ Then open http://localhost:5173 and click anywhere to start the music.
 - **Click a tower** to change its targeting, sell it, or repair it. Upgrades unlock on **night 10**.
 - **Camera:** `Q`/`E` rotate, mouse wheel zooms, right-drag or `WASD` pans, `Home` resets the view.
 - `F` changes game speed, `P` pauses, `B` opens the Almanac, `T` opens the Trophy Room, `Esc` cancels.
+- **On a phone:** drag to look around, pinch to zoom, use the arrow buttons to turn the island, and tap twice to build (once to preview, once to place). On iPhone, **Share → Add to Home Screen** plays it fullscreen.
 - **Trophies:** 23 to collect, from surviving milestones and flawless runs to finishing rich (or letting the zombies into the soup). They stay on your shelf across games.
 
 ### Things to watch out for

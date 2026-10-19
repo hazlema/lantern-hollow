@@ -6,6 +6,7 @@ import type { SpawnGroup } from '../data/waves';
 import { ZOMBIES, chopChance, type ZombieId } from '../data/zombies';
 import { add, h, ico, replay } from './dom';
 import { ICON, iconUrl } from './icons';
+import { canFullscreen, isFullscreen, isInstalled, isTouch, onFullscreenChange, toggleFullscreen } from './device';
 
 export interface HudActions {
   selectBuild(id: TowerId | null): void;
@@ -15,6 +16,7 @@ export interface HudActions {
   openAlmanac(): void;
   openTrophies(): void;
   toggleSettings(): void;
+  rotate(dir: 1 | -1): void;
   upgradeSelected(): void;
   sellSelected(): void;
   setTargetMode(m: TargetMode): void;
@@ -109,7 +111,16 @@ export class Hud {
     this.trophyBadge = h('span', { class: 'badge gold', style: 'display:none' });
     trophies.append(this.trophyBadge);
     const settings = roundBtn(ICON.gear, 'Settings', () => act.toggleSettings());
-    const ctrl = h('div', { class: 'ctrl' }, this.speedBtn, this.pauseBtn, almanac, trophies, settings);
+    let full: HTMLElement | null = null;
+    if (canFullscreen && !isInstalled()) {
+      full = roundBtn(ICON.expand, 'Fullscreen', () => void toggleFullscreen());
+      onFullscreenChange(() => { full!.innerHTML = isFullscreen() ? ICON.shrink : ICON.expand; });
+    }
+    const ctrl = h('div', { class: 'ctrl' }, this.speedBtn, this.pauseBtn, almanac, trophies, full, settings);
+    // fingers can't press Q/E: rotate buttons on touch screens
+    const cam = isTouch ? h('div', { class: 'cam' },
+      roundBtn(ICON.rotL, 'Rotate left', () => act.rotate(-1)),
+      roundBtn(ICON.rotR, 'Rotate right', () => act.rotate(1))) : null;
 
     // build bar
     const bar = h('div', { class: 'buildbar panel interactive' });
@@ -147,7 +158,7 @@ export class Hud {
     this.vignette = h('div', { class: 'vignette-hurt' });
     this.coachEl = h('div', { class: 'coach panel hide' });
 
-    this.el = h('div', { class: 'hud' }, this.vignette, this.floaters, res, nightBox, ctrl, bar, nightfall, this.tpanel, this.coachEl, this.toasts, this.bannerEl, this.tip);
+    this.el = h('div', { class: 'hud' }, this.vignette, this.floaters, res, nightBox, ctrl, cam, bar, nightfall, this.tpanel, this.coachEl, this.toasts, this.bannerEl, this.tip);
     root.append(this.el);
   }
 
@@ -251,6 +262,7 @@ export class Hud {
     this.mods = mods;
   }
   private costMult = 1;
+  private tipTimer = 0;
   private mods: Mods | null = null;
 
   private showTip(id: TowerId, card: HTMLElement) {
@@ -274,11 +286,15 @@ export class Hud {
     this.tip.style.left = `${Math.min(window.innerWidth - 270, Math.max(10, r.left + r.width / 2 - 125))}px`;
     this.tip.style.top = `${r.top - 210}px`;
     this.tip.classList.add('show');
+    // a tap never sends mouseleave: let the tip fade on its own
+    clearTimeout(this.tipTimer);
+    if (isTouch) this.tipTimer = window.setTimeout(() => this.tip.classList.remove('show'), 2600);
     requestAnimationFrame(() => { this.tip.style.top = `${r.top - this.tip.offsetHeight - 18}px`; });
   }
 
   // --- selected tower panel ----------------------------------------------------
   showTower(v: TowerView | null) {
+    this.el.classList.toggle('has-sel', !!v);
     if (!v) { this.tpanel.classList.add('hide'); this.currentPanelKey = ''; return; }
     const key = JSON.stringify(v);
     if (key === this.currentPanelKey) return;

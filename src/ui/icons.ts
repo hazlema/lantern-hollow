@@ -22,6 +22,11 @@ export const ICON = {
   target: `<svg viewBox="0 0 32 32"><circle cx="16" cy="16" r="12" fill="#f6ead0" stroke="#4a2e1c" stroke-width="3"/><circle cx="16" cy="16" r="6" fill="#e0524a" stroke="#4a2e1c" stroke-width="2.5"/></svg>`,
   skull: `<svg viewBox="0 0 32 32"><path d="M16 4C9 4 5 9 5 14c0 4 2 6 4 7v4h14v-4c2-1 4-3 4-7 0-5-4-10-11-10z" fill="#c8dca8" stroke="#4a2e1c" stroke-width="3" stroke-linejoin="round"/><circle cx="11.5" cy="15" r="3" fill="#4a2e1c"/><circle cx="20.5" cy="15" r="2.4" fill="#4a2e1c"/><path d="M13 25v-3M16 25v-3M19 25v-3" stroke="#4a2e1c" stroke-width="2"/></svg>`,
   trophy: `<svg viewBox="0 0 32 32"><path d="M9 5h14v6a7 7 0 0 1-14 0z" fill="#f2b63c" stroke="#4a2e1c" stroke-width="2.5" stroke-linejoin="round"/><path d="M9 7H5c0 4 2 6 4.5 6.5M23 7h4c0 4-2 6-4.5 6.5" fill="none" stroke="#4a2e1c" stroke-width="2.5" stroke-linecap="round"/><path d="M16 18v4M11 27h10l-1.5-5h-7z" fill="#a86e3e" stroke="#4a2e1c" stroke-width="2.5" stroke-linejoin="round"/><path d="M12 8v3" stroke="#fff3c4" stroke-width="2.2" stroke-linecap="round"/></svg>`,
+  expand: `<svg viewBox="0 0 32 32"><path d="M5 12V5h7M27 12V5h-7M5 20v7h7M27 20v7h-7" fill="none" stroke="#4a2e1c" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+  shrink: `<svg viewBox="0 0 32 32"><path d="M12 5v7H5M20 5v7h7M12 27v-7H5M20 27v-7h7" fill="none" stroke="#4a2e1c" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+  rotL: `<svg viewBox="0 0 32 32"><path d="M9 9a10 10 0 1 1-3 9" fill="none" stroke="#4a2e1c" stroke-width="3.5" stroke-linecap="round"/><path d="M4 5l5 4.5L3.5 13z" fill="#4a2e1c" stroke="#4a2e1c" stroke-width="1.5" stroke-linejoin="round"/></svg>`,
+  rotR: `<svg viewBox="0 0 32 32"><path d="M23 9a10 10 0 1 0 3 9" fill="none" stroke="#4a2e1c" stroke-width="3.5" stroke-linecap="round"/><path d="M28 5l-5 4.5 5.5 3.5z" fill="#4a2e1c" stroke="#4a2e1c" stroke-width="1.5" stroke-linejoin="round"/></svg>`,
+  share: `<svg viewBox="0 0 32 32"><path d="M16 4v15M10 10l6-6 6 6" fill="none" stroke="#4a2e1c" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><path d="M11 14H7v14h18V14h-4" fill="none" stroke="#4a2e1c" stroke-width="3" stroke-linejoin="round"/></svg>`,
 };
 
 export const iconUrl = (key: string) => `/art/icons/${key}.webp`;
