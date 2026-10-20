@@ -526,6 +526,8 @@ button { font-family: inherit; color: inherit; }
 }
 .shelves section { margin-bottom: 18px; }
 .shelves h3 { margin: 0 0 8px 4px; font: 20px var(--display); color: #ffd890; text-shadow: 0 2px 0 #1a0e06; letter-spacing: .5px; }
+.shelves h5 { margin: 4px 0 6px 6px; font: 13px var(--display); color: #e0b878; text-transform: uppercase; letter-spacing: 1.5px; opacity: .85; }
+.shelves .plank + h5 { margin-top: 14px; }
 .shelf-row { display: flex; flex-wrap: wrap; gap: 12px; position: relative; z-index: 1; }
 .plank { height: 14px; margin: -8px -8px 0; border-radius: 4px; background: linear-gradient(180deg, #c88a52, #8a5430 60%, #5e3a20); border: 2px solid #2a160a; box-shadow: 0 6px 10px rgba(0,0,0,.45); }
 

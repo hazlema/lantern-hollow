@@ -22,28 +22,29 @@ describe('trophies', () => {
   });
 
   it('a clean run collects night, perfect and no-upgrade trophies', () => {
-    expect(dawnTrophies(5, clean)).toEqual(['easy5', 'perfect5']);
-    expect(dawnTrophies(10, clean)).toEqual(['easy10', 'perfect10']);
-    expect(dawnTrophies(15, clean)).toEqual(['easy15', 'perfect15', 'noup15']);
-    expect(dawnTrophies(20, clean)).toEqual(['easyWin', 'perfect20', 'noup20', 'perfectGame']);
+    expect(dawnTrophies(5, clean)).toEqual(['easy5', 'easyPerfect5']);
+    expect(dawnTrophies(10, clean)).toEqual(['easy10', 'easyPerfect10']);
+    expect(dawnTrophies(15, clean)).toEqual(['easy15', 'easyPerfect15', 'easyNoup15']);
+    expect(dawnTrophies(20, clean)).toEqual(['easyWin', 'easyPerfect20', 'easyNoup20', 'easyPerfectGame']);
   });
 
   it('each mode earns its own night trophies, and only its own', () => {
-    expect(dawnTrophies(5, clean, 'medium')).toEqual(['medium5', 'perfect5']);
+    expect(dawnTrophies(5, clean, 'medium')).toEqual(['medium5', 'mediumPerfect5']);
     expect(dawnTrophies(10, { hurt: true, upgraded: true }, 'hard')).toEqual(['hard10']);
     expect(dawnTrophies(15, { hurt: true, upgraded: true }, 'rush')).toEqual(['rush15']);
     expect(dawnTrophies(20, { hurt: true, upgraded: true }, 'hard')).toEqual(['hardWin']);
     expect(dawnTrophies(20, { hurt: true, upgraded: true }, 'rush')).toEqual(['rushWin']);
     expect(dawnTrophies(6, clean, 'rush')).toEqual([]);
+    expect(dawnTrophies(20, clean, 'rush')).toEqual(['rushWin', 'rushPerfect20', 'rushNoup20', 'rushPerfectGame']);
   });
 
-  it('old mode-less night trophies map onto real Easy trophies', () => {
-    for (const id of Object.values(RENAMED)) expect(TROPHY_BY_ID[id]?.shelf).toBe(SHELVES.indexOf('Easy Nights'));
+  it('old mode-less trophies map onto real Easy trophies', () => {
+    for (const id of Object.values(RENAMED)) expect(TROPHY_BY_ID[id]?.shelf).toBe(SHELVES.indexOf('Easy'));
   });
 
   it('losing a heart or upgrading rules out the matching trophies', () => {
-    expect(dawnTrophies(20, { hurt: true, upgraded: false })).toEqual(['easyWin', 'noup20']);
-    expect(dawnTrophies(20, { hurt: false, upgraded: true })).toEqual(['easyWin', 'perfect20']);
+    expect(dawnTrophies(20, { hurt: true, upgraded: false })).toEqual(['easyWin', 'easyNoup20']);
+    expect(dawnTrophies(20, { hurt: false, upgraded: true })).toEqual(['easyWin', 'easyPerfect20']);
     expect(dawnTrophies(15, { hurt: true, upgraded: true })).toEqual(['easy15']);
   });
 

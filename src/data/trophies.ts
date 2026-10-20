@@ -4,14 +4,13 @@ import { TOTAL_NIGHTS } from './waves';
 import type { TowerId } from './towers';
 
 type Milestone = 5 | 10 | 15 | 'Win';
+type PerMode = Milestone | 'Perfect5' | 'Perfect10' | 'Perfect15' | 'Perfect20' | 'Noup15' | 'Noup20' | 'PerfectGame';
 
-/** The Long Night: one set per mode, e.g. `hard10` or `rushWin`. */
-export type NightTrophyId = `${ModeId}${Milestone}`;
+/** One set per mode, e.g. `hard10`, `rushWin` or `mediumPerfect15`. */
+export type ModeTrophyId = `${ModeId}${PerMode}`;
 
 export type TrophyId =
-  | NightTrophyId
-  | 'noup15' | 'noup20'
-  | 'perfect5' | 'perfect10' | 'perfect15' | 'perfect20' | 'perfectGame'
+  | ModeTrophyId
   | 'gold100' | 'gold500' | 'gold1000' | 'gold5000'
   | 'unlock_catapult' | 'unlock_sprinkler' | 'unlock_lantern' | 'unlock_owl' | 'allTowers'
   | 'king' | 'destroyer' | 'lost';
@@ -25,16 +24,18 @@ export interface TrophyDef {
   /** how to earn it (shown on the shelf, locked or not) */
   desc: string;
   shelf: number;
+  /** the mode shelves split into rows: nights, flawless, the old ways */
+  row?: string;
   tier: TrophyTier;
   /** icon key in public/art/icons */
   icon: string;
 }
 
-export const SHELVES = ['Easy Nights', 'Medium Nights', 'Hard Nights', 'Lantern Rush', 'Flawless', 'The Old Ways', 'Treasure', 'Discoveries', 'Odd Moments'] as const;
+export const SHELVES = ['Easy', 'Medium', 'Hard', 'Lantern Rush', 'Treasure', 'Discoveries', 'Odd Moments'] as const;
 type Shelf = (typeof SHELVES)[number];
 
-const T = (id: TrophyId, name: string, desc: string, shelf: Shelf, tier: TrophyTier, icon = `trophy_${id}`): TrophyDef =>
-  ({ id, name, desc, shelf: SHELVES.indexOf(shelf), tier, icon });
+const T = (id: TrophyId, name: string, desc: string, shelf: Shelf, tier: TrophyTier, icon = `trophy_${id}`, row?: string): TrophyDef =>
+  ({ id, name, desc, shelf: SHELVES.indexOf(shelf), row, tier, icon });
 
 /** The difficulties share their names and art; Lantern Rush has its own. */
 const NIGHT_NAMES: Record<ModeId, [string, string, string, string]> = {
@@ -45,28 +46,31 @@ const NIGHT_NAMES: Record<ModeId, [string, string, string, string]> = {
 };
 const SHARED_ART = ['trophy_night5', 'trophy_night10', 'trophy_night15', 'trophy_win'];
 
-const nightTrophies = (mode: ModeId): TrophyDef[] => {
+const modeTrophies = (mode: ModeId): TrophyDef[] => {
   const m = MODES[mode];
   const where = mode === 'rush' ? 'of Lantern Rush' : `on ${m.name}`;
-  const shelf: Shelf = mode === 'rush' ? 'Lantern Rush' : `${m.name} Nights` as Shelf;
-  return ([5, 10, 15, 'Win'] as Milestone[]).map((ms, i) => T(
-    `${mode}${ms}`, NIGHT_NAMES[mode][i],
-    ms === 'Win' ? `Survive all ${TOTAL_NIGHTS} nights ${where}.` : `Survive the first ${ms} nights ${where}.`,
-    shelf, (i + 1) as TrophyTier, mode === 'rush' ? undefined : SHARED_ART[i],
-  ));
+  const shelf: Shelf = mode === 'rush' ? 'Lantern Rush' : m.name as Shelf;
+  const M = (ms: PerMode, name: string, desc: string, tier: TrophyTier, icon: string, row: string) =>
+    T(`${mode}${ms}`, name, `${desc} ${where}.`, shelf, tier, icon, row);
+  const all = `all ${TOTAL_NIGHTS}`;
+  return [
+    ...([5, 10, 15, 'Win'] as Milestone[]).map((ms, i) => M(
+      ms, NIGHT_NAMES[mode][i], ms === 'Win' ? `Survive ${all} nights` : `Survive the first ${ms} nights`,
+      (i + 1) as TrophyTier, mode === 'rush' ? `trophy_${mode}${ms}` : SHARED_ART[i], 'Nights')),
+
+    M('Perfect5', 'Not a Scratch', 'Survive 5 nights without losing a single heart', 1, 'trophy_perfect5', 'Flawless'),
+    M('Perfect10', 'Tidy Porch', 'Survive 10 nights without losing a single heart', 2, 'trophy_perfect10', 'Flawless'),
+    M('Perfect15', 'Untouchable', 'Survive 15 nights without losing a single heart', 3, 'trophy_perfect15', 'Flawless'),
+    M('Perfect20', 'Spotless Hollow', `Survive ${all} nights without losing a single heart`, 4, 'trophy_perfect20', 'Flawless'),
+
+    M('Noup15', 'Sticks & Stones', 'Survive 15 nights without upgrading a tower', 3, 'trophy_noup15', 'The Old Ways'),
+    M('Noup20', 'Old School', `Survive ${all} nights without upgrading a tower`, 4, 'trophy_noup20', 'The Old Ways'),
+    M('PerfectGame', 'Sleepy Hollow', `Survive ${all} nights with no hearts lost and no upgrades`, 4, 'trophy_perfectGame', 'The Old Ways'),
+  ];
 };
 
 export const TROPHIES: TrophyDef[] = [
-  ...MODE_ORDER.flatMap(nightTrophies),
-
-  T('perfect5', 'Not a Scratch', 'Survive 5 nights without losing a single heart.', 'Flawless', 1),
-  T('perfect10', 'Tidy Porch', 'Survive 10 nights without losing a single heart.', 'Flawless', 2),
-  T('perfect15', 'Untouchable', 'Survive 15 nights without losing a single heart.', 'Flawless', 3),
-  T('perfect20', 'Spotless Hollow', `Survive all ${TOTAL_NIGHTS} nights without losing a single heart.`, 'Flawless', 4),
-
-  T('noup15', 'Sticks & Stones', 'Survive 15 nights without upgrading a tower.', 'The Old Ways', 3),
-  T('noup20', 'Old School', `Survive all ${TOTAL_NIGHTS} nights without upgrading a tower.`, 'The Old Ways', 4),
-  T('perfectGame', 'Sleepy Hollow', `The perfect game: all ${TOTAL_NIGHTS} nights, no hearts lost, no upgrades.`, 'The Old Ways', 4),
+  ...MODE_ORDER.flatMap(modeTrophies),
 
   T('gold100', 'Pocket Change', 'Win with at least 100 gold in your pocket.', 'Treasure', 1),
   T('gold500', 'Nest Egg', 'Win with at least 500 gold in your pocket.', 'Treasure', 2),
@@ -84,8 +88,12 @@ export const TROPHIES: TrophyDef[] = [
   T('lost', "Soup's On", 'Let the zombies into the cottage. They were only hungry.', 'Odd Moments', 1),
 ];
 
-/** Before modes, the night trophies were mode-less; those games played at Easy's health. */
-export const RENAMED: Record<string, TrophyId> = { night5: 'easy5', night10: 'easy10', night15: 'easy15', win: 'easyWin' };
+/** Before modes, these trophies were mode-less; those games played at Easy's health. */
+export const RENAMED: Record<string, TrophyId> = {
+  night5: 'easy5', night10: 'easy10', night15: 'easy15', win: 'easyWin',
+  perfect5: 'easyPerfect5', perfect10: 'easyPerfect10', perfect15: 'easyPerfect15', perfect20: 'easyPerfect20',
+  noup15: 'easyNoup15', noup20: 'easyNoup20', perfectGame: 'easyPerfectGame',
+};
 
 export const TROPHY_BY_ID = Object.fromEntries(TROPHIES.map((t) => [t.id, t])) as Record<TrophyId, TrophyDef>;
 
@@ -103,9 +111,9 @@ const MILESTONES = [5, 10, 15, 20];
 export function dawnTrophies(n: number, run: RunRecord, mode: ModeId = 'easy'): TrophyId[] {
   if (!MILESTONES.includes(n) || n > TOTAL_NIGHTS) return [];
   const out: TrophyId[] = [`${mode}${n === TOTAL_NIGHTS ? 'Win' : n as Milestone}`];
-  if (!run.hurt) out.push(`perfect${n}` as TrophyId);
-  if (!run.upgraded && n >= 15) out.push(`noup${n}` as TrophyId);
-  if (n === TOTAL_NIGHTS && !run.hurt && !run.upgraded) out.push('perfectGame');
+  if (!run.hurt) out.push(`${mode}Perfect${n}` as TrophyId);
+  if (!run.upgraded && n >= 15) out.push(`${mode}Noup${n}` as TrophyId);
+  if (n === TOTAL_NIGHTS && !run.hurt && !run.upgraded) out.push(`${mode}PerfectGame`);
   return out;
 }
 

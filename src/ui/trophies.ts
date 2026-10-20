@@ -103,18 +103,23 @@ export class TrophyRoom {
     this.fill.style.transform = `scaleX(${have / total})`;
     this.body.innerHTML = '';
     SHELVES.forEach((name, s) => {
-      const row = h('div', { class: 'shelf-row' });
-      for (const t of TROPHIES.filter((x) => x.shelf === s)) {
-        const at = this.store.when(t.id);
-        row.append(h('div', { class: `tcard tier${t.tier} ${at ? 'earned' : 'locked'}` },
-          this.store.isNew(t.id) ? h('span', { class: 'new', text: 'New!' }) : null,
-          h('div', { class: 'medal' }, h('img', { attrs: { src: iconUrl(t.icon), alt: '', draggable: 'false' } }), at ? null : h('span', { class: 'lock', html: ICON.lock })),
-          h('h4', { text: t.name }),
-          h('p', { text: t.desc }),
-          h('small', { text: at ? `Earned ${fmtDate(at)}` : 'Not yet earned' }),
-        ));
+      const section = h('section', {}, h('h3', { text: name }));
+      const onShelf = TROPHIES.filter((x) => x.shelf === s);
+      for (const label of new Set(onShelf.map((t) => t.row))) {
+        const row = h('div', { class: 'shelf-row' });
+        for (const t of onShelf.filter((x) => x.row === label)) {
+          const at = this.store.when(t.id);
+          row.append(h('div', { class: `tcard tier${t.tier} ${at ? 'earned' : 'locked'}` },
+            this.store.isNew(t.id) ? h('span', { class: 'new', text: 'New!' }) : null,
+            h('div', { class: 'medal' }, h('img', { attrs: { src: iconUrl(t.icon), alt: '', draggable: 'false' } }), at ? null : h('span', { class: 'lock', html: ICON.lock })),
+            h('h4', { text: t.name }),
+            h('p', { text: t.desc }),
+            h('small', { text: at ? `Earned ${fmtDate(at)}` : 'Not yet earned' }),
+          ));
+        }
+        section.append(label ? h('h5', { text: label }) : '', row, h('div', { class: 'plank' }));
       }
-      this.body.append(h('section', {}, h('h3', { text: name }), row, h('div', { class: 'plank' })));
+      this.body.append(section);
     });
   }
 
