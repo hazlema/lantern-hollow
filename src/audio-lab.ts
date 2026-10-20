@@ -14,6 +14,8 @@ const DESCRIPTIONS: Record<SfxName, string> = {
   ui_close: 'Swoosh down + falling notes',
   ui_error: 'Gentle "uh-uh"',
   ui_page: 'Tech-book page turn',
+  rush_tick: 'Lantern Rush countdown tick',
+  rush_last: 'Lantern Rush last second: tock + bell',
   place_invalid: 'Rubbery bonk',
   build: 'Three hammer knocks + sparkle',
   upgrade: 'Rising music-box arpeggio + shimmer',

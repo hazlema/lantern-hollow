@@ -5,7 +5,7 @@ import { audio, type SfxName } from '../audio';
 import type { GameMap } from '../data/map';
 import { Path, smooth } from '../data/path';
 import { spawnSchedule } from '../data/waves';
-import { CHOP, DIFFICULTY, chopChance, goldScale, hpScale, type ZombieId } from '../data/zombies';
+import { CHOP, chopChance, goldScale, hpScale, type ZombieId } from '../data/zombies';
 import type { Mods } from '../data/tech';
 import { FirePatch, type Projectile } from '../entities/projectiles';
 import { Tower } from '../entities/tower';
@@ -51,6 +51,8 @@ export class World implements Ctx {
   private queue: QueuedSpawn[] = [];
   private nightT = 0;
   private nightN = 1;
+  /** the game mode's zombie health multiplier (see data/modes) */
+  hpMult = 1.06;
   private scr = { x: 0, y: 0 };
   private tmp = new THREE.Vector3();
   private bossCount = 0;
@@ -147,7 +149,7 @@ export class World implements Ctx {
   get hasBoss(): boolean { return this.bossCount > 0; }
 
   private spawn(type: ZombieId) {
-    const z = new Zombie(type, hpScale(this.nightN) * DIFFICULTY.hp, goldScale(this.nightN));
+    const z = new Zombie(type, hpScale(this.nightN) * this.hpMult, goldScale(this.nightN));
     this.zombies.push(z);
     this.group.add(z.object);
     z.update(0, this.path, 0);

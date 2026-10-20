@@ -15,6 +15,8 @@ export type SfxName =
   | 'ui_close'
   | 'ui_error'
   | 'ui_page'
+  | 'rush_tick'
+  | 'rush_last'
   // economy / building
   | 'build'
   | 'upgrade'
@@ -223,6 +225,24 @@ const RECIPES: Record<SfxName, Recipe> = {
       k.noise({ a: 0.05, d: 0.2, v: 0.05, hp: 3000, lp: 9000 });
       k.noise({ t: k.rand(0.08, 0.12), color: 'pink', a: 0.06, d: 0.14, v: 0.35, bp: [[0, 500], [0.09, 1300], [0.2, 450]], q: 0.9 });
       k.noise({ t: k.rand(0.24, 0.3), color: 'pink', a: 0.002, d: 0.05, v: 0.22, lp: 900 });
+    },
+  },
+
+  rush_tick: {
+    // Lantern Rush countdown: a wooden clock tick for each of the last few seconds
+    dur: 0.25, variations: 3, rms: -22, send: 0.1, jitter: 0.02, minInterval: 400, maxVoices: 2, priority: 3,
+    render(k) {
+      I.knock(k, 0, k.rand(600, 640), 0.5);
+      k.noise({ a: 0.0005, d: 0.015, v: 0.2, bp: k.rand(3200, 3600), q: 2 });
+    },
+  },
+  rush_last: {
+    // ...and the last second: a brighter tock with a little bell
+    dur: 1.0, variations: 2, rms: -21, send: 0.15, jitter: 0, minInterval: 400, maxVoices: 2, priority: 3,
+    render(k) {
+      I.knock(k, 0, k.rand(740, 780), 0.55);
+      k.noise({ a: 0.0005, d: 0.015, v: 0.22, bp: 4200, q: 2 });
+      I.churchBell(k, 0.02, mtof(81), 0.1, 0.8);
     },
   },
 

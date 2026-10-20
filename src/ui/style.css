@@ -465,6 +465,39 @@ button { font-family: inherit; color: inherit; }
 .btn.repair.locked { --c1: #e6dccb; --c2: #c9bba3; color: var(--ink); text-shadow: none; filter: none; opacity: 1; cursor: help; pointer-events: auto; }
 .btn.repair.locked .ico { width: 18px; height: 18px; }
 
+/* ------------------------------------------------------------------ modes */
+.title .menu.hide, .title .modes.hide { display: none; }
+.title .modes { position: absolute; bottom: 8%; left: 6%; width: min(440px, 88vw); padding: 16px 18px 18px; display: flex; flex-direction: column; gap: 10px; animation: fade-up .5s both; }
+.title .modes h4 { margin: 0 0 2px; font: 26px var(--display); color: #7a2f22; }
+.title .modes > .btn { align-self: flex-start; margin-top: 4px; color: var(--ink); }
+.mode-pick {
+  display: grid; grid-template-columns: 34px 1fr; column-gap: 12px; align-items: center; text-align: left;
+  padding: 9px 14px 11px; border: 3px solid var(--ink); border-radius: 14px; cursor: pointer;
+  background: linear-gradient(180deg, #fffaf0, var(--cream-2));
+  box-shadow: inset 0 2px 0 rgba(255,255,255,.6), 0 4px 0 var(--ink);
+  transition: transform .08s ease, box-shadow .08s ease, filter .15s;
+}
+.mode-pick:hover { transform: translateY(-1px); filter: brightness(1.04); box-shadow: inset 0 2px 0 rgba(255,255,255,.6), 0 5px 0 var(--ink); }
+.mode-pick:active { transform: translateY(3px); box-shadow: inset 0 2px 0 rgba(255,255,255,.5), 0 1px 0 var(--ink); }
+.mode-pick .ico { grid-row: span 2; width: 30px; height: 30px; }
+.mode-pick .ico svg { width: 100%; height: 100%; }
+.mode-pick b { font: 21px var(--display); letter-spacing: .5px; }
+.mode-pick span { font: 500 14px/1.3 var(--body); opacity: .8; }
+.mode-pick.medium { background: linear-gradient(180deg, #ffe9c4, #f6cf8e); }
+.mode-pick.hard { background: linear-gradient(180deg, #ffd3c2, #f0a386); }
+.mode-pick.rush { background: linear-gradient(180deg, #a985c4, #6c4884); color: #fff8ea; }
+.mode-pick.rush b { text-shadow: 0 2px 0 var(--ink), 0 0 1px var(--ink); }
+.mode-pick.rush span { opacity: .92; }
+
+/* the mode tag beside the night counter */
+.night-plaque .plaque .mode-tag { font: 600 12px var(--body); padding: 1px 7px 2px; margin-left: 4px; border-radius: 8px; background: rgba(74,46,28,.12); }
+.night-plaque .plaque .mode-tag.rush { background: #6c4884; color: #fff8ea; }
+
+/* Lantern Rush: the Nightfall button counts down the day */
+.nightfall .btn.countdown { min-width: 190px; font-variant-numeric: tabular-nums; }
+.nightfall .btn.countdown.hurry { --c1: #f27a63; --c2: #b8382e; animation: hurry .5s ease-in-out infinite alternate; }
+@keyframes hurry { to { transform: scale(1.06); } }
+
 /* ------------------------------------------------------------------ trophy room */
 .badge.gold { background: var(--gold); color: var(--ink); }
 .title .menu .btn.cream.small { color: var(--ink); }
@@ -661,6 +694,14 @@ body.touch .hint-keys, body.touch .card .key, body.touch .settings .keys { displ
   .title .menu { bottom: 7%; gap: 8px; }
   .title .menu .btn { font-size: 20px; padding: 7px 20px 9px; }
   .title .menu .btn.small { font-size: 14px; padding: 5px 12px 7px; }
+  .title .modes { bottom: 4%; padding: 10px 12px 12px; gap: 6px; width: min(400px, 60vw); }
+  .title .modes h4 { font-size: 19px; }
+  .title .modes > .btn { font-size: 14px; padding: 5px 12px 7px; margin-top: 0; }
+  .mode-pick { padding: 5px 10px 7px; grid-template-columns: 24px 1fr; column-gap: 8px; }
+  .mode-pick .ico { width: 22px; height: 22px; }
+  .mode-pick b { font-size: 16px; }
+  .mode-pick span { font-size: 11px; }
+  .nightfall .btn.countdown { min-width: 0; }
   .title .foot { font-size: 11px; bottom: 8px; }
   .title .corner { top: 10px; right: 10px; }
   .title .install { top: 58px; right: 10px; width: 260px; }

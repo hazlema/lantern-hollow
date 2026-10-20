@@ -43,13 +43,6 @@ export const ZOMBIES: Record<ZombieId, ZombieDef> = {
   },
 };
 
-/**
- * The difficulty dial: multiplies every zombie's health on top of the nightly curve.
- * 1.06 after playtesting ("pretty balanced, could be a smidge harder").
- * The natural hook for a future Cozy / Normal / Hard choice.
- */
-export const DIFFICULTY = { hp: 1.06 } as const;
-
 /** HP multiplier applied to every zombie in night `n` (1-based). */
 export function hpScale(n: number): number {
   return Math.pow(1 + 0.27 * (n - 1), 1.52);

@@ -1,24 +1,34 @@
 import { audio } from '../audio';
 import { h, ico } from './dom';
 import { ICON } from './icons';
+import { MODES, MODE_ORDER, type ModeId } from '../data/modes';
 import { canFullscreen, isFullscreen, isIOS, isInstalled, isTouch, onFullscreenChange, toggleFullscreen } from './device';
 
 export class TitleScreen {
   readonly el: HTMLDivElement;
   private continueBtn: HTMLButtonElement;
+  private menu: HTMLElement;
+  private modes: HTMLElement;
 
-  constructor(root: HTMLElement, onPlay: () => void, onContinue: () => void, onTrophies: () => void) {
+  constructor(root: HTMLElement, onPlay: (mode: ModeId) => void, onContinue: () => void, onTrophies: () => void) {
     const flies = Array.from({ length: 16 }, (_, i) =>
       h('div', { class: 'fly', style: `left:${10 + Math.random() * 85}%;top:${35 + Math.random() * 55}%;animation-delay:${(i * 0.6) % 9}s;animation-duration:${7 + Math.random() * 5}s` }));
-    const play = h('button', { class: 'btn interactive', on: { click: onPlay, mouseenter: () => audio.play('ui_hover') } }, ico(ICON.moon), 'New Game');
+    const play = h('button', { class: 'btn interactive', on: { click: () => this.pickMode(true), mouseenter: () => audio.play('ui_hover') } }, ico(ICON.moon), 'New Game');
     this.continueBtn = h('button', { class: 'btn plum interactive', on: { click: onContinue, mouseenter: () => audio.play('ui_hover') } }, 'Continue');
     this.el = h('div', { class: 'screen title interactive' },
       h('div', { class: 'art' }),
       h('div', { class: 'shade' }),
       ...flies,
       h('div', { class: 'logo' }, h('h1', { html: 'Lantern<span>Hollow</span>' }), h('p', { text: 'A cozy autumn zombie defense' })),
-      h('div', { class: 'menu' }, this.continueBtn, play,
+      this.menu = h('div', { class: 'menu' }, this.continueBtn, play,
         h('button', { class: 'btn cream small interactive', on: { click: () => { audio.play('ui_click'); onTrophies(); }, mouseenter: () => audio.play('ui_hover') } }, ico(ICON.trophy), 'Trophy Room')),
+      this.modes = h('div', { class: 'modes panel hide' },
+        h('h4', { text: 'Choose your autumn' }),
+        ...MODE_ORDER.map((id) => h('button', {
+          class: `mode-pick ${id} interactive`,
+          on: { click: () => { this.pickMode(false); onPlay(id); }, mouseenter: () => audio.play('ui_hover') },
+        }, ico(id === 'rush' ? ICON.clock : ICON.moon), h('b', { text: MODES[id].name }), h('span', { text: MODES[id].blurb }))),
+        h('button', { class: 'btn cream small interactive', text: 'Back', on: { click: () => { audio.play('ui_click'); this.pickMode(false); } } })),
       h('div', { class: 'foot', text: isTouch ? 'Drag to look around · Pinch to zoom' : 'Q/E rotate · Wheel zoom · Right-drag pan' }),
       this.screenButton(),
     );
@@ -41,8 +51,16 @@ export class TitleScreen {
     return h('div', {}, btn, how);
   }
 
+  /** New Game swaps the menu for the four modes. */
+  private pickMode(on: boolean) {
+    if (on) audio.play('ui_click');
+    this.menu.classList.toggle('hide', on);
+    this.modes.classList.toggle('hide', !on);
+  }
+
   show(on: boolean, hasSave = false) {
     this.el.classList.toggle('hide', !on);
+    this.pickMode(false);
     this.continueBtn.style.display = hasSave ? '' : 'none';
   }
 }

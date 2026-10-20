@@ -104,10 +104,14 @@ describe('waves', () => {
     }
   });
 
-  it('the difficulty dial is a gentle nudge, not a cliff', async () => {
-    const { DIFFICULTY } = await import('../src/data/zombies');
-    expect(DIFFICULTY.hp).toBeGreaterThan(1);
-    expect(DIFFICULTY.hp).toBeLessThanOrEqual(1.1);
+  it('difficulties climb gently, and Lantern Rush plays at Easy health', async () => {
+    const { MODES } = await import('../src/data/modes');
+    expect(MODES.easy.hp).toBeGreaterThan(1);
+    expect(MODES.easy.hp).toBeLessThan(MODES.medium.hp);
+    expect(MODES.medium.hp).toBeLessThan(MODES.hard.hp);
+    expect(MODES.hard.hp).toBeLessThanOrEqual(2);
+    expect(MODES.rush.hp).toBe(MODES.easy.hp);
+    expect(MODES.rush.dayTimer).toBe(15);
   });
 
   it('scales hp up', () => {

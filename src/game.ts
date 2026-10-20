@@ -20,6 +20,7 @@ import { Tour, type TourStep } from './ui/tour';
 import { Announcer } from './ui/announce';
 import { TrophyCase, TrophyRoom } from './ui/trophies';
 import { isTouch } from './ui/device';
+import { MODES, modeOf, type ModeDef, type ModeId } from './data/modes';
 import { dawnTrophies, goldTrophies, researchTrophies, type RunRecord } from './data/trophies';
 
 type Phase = 'title' | 'build' | 'night' | 'over';
@@ -40,6 +41,10 @@ interface SaveData {
   announced?: string[];
   /** what this run has done that rules trophies out */
   run?: RunRecord;
+  /** game mode (saves from before modes are Easy) */
+  mode?: ModeId;
+  /** Lantern Rush: seconds left on the day's clock */
+  dayLeft?: number | null;
 }
 
 export class Game {
@@ -81,6 +86,9 @@ export class Game {
   private livesAtNightStart = START_LIVES;
   private stats = { kills: 0, built: 0 };
   private endless = false;
+  private mode: ModeDef = MODES.easy;
+  /** Lantern Rush: seconds until the next night starts by itself (null: wait for Nightfall) */
+  private dayLeft: number | null = null;
 
   // interaction
   private building: TowerId | null = null;
@@ -157,7 +165,7 @@ export class Game {
     });
     this.pauseVeil = new PauseVeil(uiEl, () => this.setPaused(false));
     this.end = new EndScreen(uiEl);
-    this.title = new TitleScreen(uiEl, () => this.newGame(), () => this.continueGame(), () => this.openTrophies());
+    this.title = new TitleScreen(uiEl, (m) => this.newGame(m), () => this.continueGame(), () => this.openTrophies());
     this.tour = new Tour(uiEl);
     this.announcer = new Announcer(uiEl);
     this.trophyRoom = new TrophyRoom(uiEl, this.trophies, () => this.hud.setTrophyBadge(this.trophies.unseen));
@@ -187,11 +195,13 @@ export class Game {
     audio.setMusicIntensity(0);
   }
 
-  newGame() {
+  /** Starts over in `mode` (by default the mode just played, for "Try again"). */
+  newGame(mode: ModeId = this.mode.id) {
     audio.play('ui_click');
     void this.boot();
     localStorage.removeItem(SAVE_KEY);
     this.reset();
+    this.setMode(MODES[mode]);
     const firstTime = !localStorage.getItem(TUT_KEY);
     this.tutorial = -1;
     this.enterBuild(true);
@@ -277,6 +287,7 @@ export class Game {
       this.nightN = s.night; this.gold = s.gold; this.lives = s.lives; this.maxLives = s.maxLives; this.embers = s.embers;
       this.owned = new Set(s.owned); this.mods = computeMods(this.owned); this.world.mods = this.mods;
       this.stats = { kills: s.kills, built: s.built }; this.endless = s.endless;
+      this.setMode(modeOf(s.mode));
       this.announced = new Set(s.announced ?? []);
       // saves from before trophies: give the benefit of the doubt where the save can't tell
       this.run = s.run ?? { hurt: s.lives < s.maxLives, upgraded: s.towers.some((t) => t.level > 1) };
@@ -290,6 +301,9 @@ export class Game {
     }
     this.tutorial = -1;
     this.enterBuild(true);
+    // pick the rush clock up where it was left
+    const left = (JSON.parse(raw) as SaveData).dayLeft;
+    if (this.dayLeft !== null && typeof left === 'number') this.dayLeft = Math.max(5, left);
     this.trophyRoom.award(researchTrophies(this.owned));
     // older saves past night 10 still deserve the lumberjack warning
     if (this.nightN >= 11) setTimeout(() => this.announceLumberjacks(), 1400);
@@ -311,8 +325,17 @@ export class Game {
     this.setPaused(false);
   }
 
+  private setMode(m: ModeDef) {
+    this.mode = m;
+    this.world.hpMult = m.hp;
+    this.hud.setMode(m.name, m.dayTimer !== null);
+  }
+
   private enterBuild(fromTitle = false) {
     this.phase = 'build';
+    // Lantern Rush: every day after the first runs on the clock
+    this.dayLeft = this.mode.dayTimer !== null && this.nightN > 1 ? this.mode.dayTimer : null;
+    this.hud.setCountdown(this.dayLeft);
     this.title.show(false);
     this.hud.show(true);
     this.stage.setNight(this.dayTone());
@@ -330,6 +353,8 @@ export class Game {
   startNight() {
     if (this.phase !== 'build') return;
     this.phase = 'night';
+    this.dayLeft = null;
+    this.hud.setCountdown(null);
     audio.play('wave_start');
     audio.setMusicIntensity(1);
     this.world.startNight(this.nightN);
@@ -441,6 +466,7 @@ export class Game {
     const data: SaveData = {
       v: 1, night: this.nightN, gold: this.gold, lives: this.lives, maxLives: this.maxLives, embers: this.embers,
       owned: [...this.owned], kills: this.stats.kills, built: this.stats.built, endless: this.endless, announced: [...this.announced], run: this.run,
+      mode: this.mode.id, dayLeft: this.dayLeft,
       towers: this.world.towers.map((t) => ({ id: t.id, c: t.c, r: t.r, level: t.level, mode: t.targetMode, spent: t.spent, kills: t.kills, condition: t.condition })),
     };
     localStorage.setItem(SAVE_KEY, JSON.stringify(data));
@@ -860,6 +886,25 @@ export class Game {
     requestAnimationFrame(loop);
   }
 
+  /**
+   * Lantern Rush's day clock. Runs in real seconds (game speed doesn't shorten it) and keeps going
+   * while the Almanac or trophy room is open; only pausing, the tour or an announcement stop it.
+   */
+  private tickDay(dt: number) {
+    if (this.dayLeft === null || this.phase !== 'build' || this.paused || this.tour.active || this.announcer.active) return;
+    const before = Math.ceil(this.dayLeft);
+    this.dayLeft -= dt;
+    const now = Math.ceil(this.dayLeft);
+    if (now !== before && now >= 1 && now <= 5) audio.play(now === 1 ? 'rush_last' : 'rush_tick');
+    if (this.dayLeft <= 0) {
+      if (this.almanac.isOpen) this.almanac.close();
+      if (this.trophyRoom.isOpen) this.trophyRoom.close();
+      this.startNight();
+      return;
+    }
+    this.hud.setCountdown(this.dayLeft);
+  }
+
   private frame(dt: number) {
     const time = this.time;
     if (this.autoQuality && this.phase !== 'title') {
@@ -889,6 +934,8 @@ export class Game {
       if (this.phase === 'night' && !this.world.nightActive) this.dawn();
       if (this.phase === 'night') audio.setBossMode(this.world.hasBoss);
     }
+
+    this.tickDay(dt);
 
     // re-evaluate hover while the camera glides
     if (this.building && (!isTouch || this.pendingTile)) this.updateHover(this.lastMouse.x, this.lastMouse.y);

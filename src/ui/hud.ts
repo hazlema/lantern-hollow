@@ -70,6 +70,8 @@ export class Hud {
   private boss: HTMLElement;
   private bossFill: HTMLElement;
   private currentPanelKey = '';
+  private mode = { name: 'Easy', rush: false };
+  private countdownKey = '';
 
   constructor(root: HTMLElement, private act: HudActions) {
     const clickSfx = () => audio.play('ui_click');
@@ -188,7 +190,8 @@ export class Hud {
   setNightInfo(n: number, total: number, phase: 'build' | 'night', upcoming: SpawnGroup[]) {
     const endless = n > total;
     this.plaque.innerHTML = '';
-    this.plaque.append(ico(phase === 'night' ? ICON.moon : ICON.sun), h('span', { text: endless ? `Night ${n}` : `Night ${n}` }), h('small', { text: endless ? '∞' : `/ ${total}` }));
+    this.plaque.append(ico(phase === 'night' ? ICON.moon : ICON.sun), h('span', { text: endless ? `Night ${n}` : `Night ${n}` }), h('small', { text: endless ? '∞' : `/ ${total}` }),
+      h('em', { class: `mode-tag ${this.mode.rush ? 'rush' : ''}`, text: this.mode.name }));
     this.preview.classList.toggle('hide', phase === 'night');
     this.progress.style.display = phase === 'night' ? '' : 'none';
     this.nfBtn.disabled = phase === 'night';
@@ -203,6 +206,27 @@ export class Hud {
         this.preview.append(h('div', { class: 'z', title: `${ZOMBIES[type].name}: ${ZOMBIES[type].blurb}${extra}` },
           h('img', { attrs: { src: iconUrl(`z_${type}`), alt: type } }), h('b', { text: `×${count}` })));
       }
+    }
+  }
+
+  /** The current game mode, shown quietly beside the night counter. */
+  setMode(name: string, rush: boolean) { this.mode = { name, rush }; }
+
+  /** Lantern Rush: the Nightfall button counts down the day (seconds left), or null for the plain button. */
+  setCountdown(seconds: number | null) {
+    const s = seconds === null ? null : Math.max(0, Math.ceil(seconds));
+    const key = String(s);
+    if (key === this.countdownKey) return;
+    this.countdownKey = key;
+    this.nfBtn.classList.toggle('countdown', s !== null);
+    this.nfBtn.classList.toggle('hurry', s !== null && s <= 5);
+    this.nfBtn.innerHTML = '';
+    if (s === null) {
+      add(this.nfBtn, ico(ICON.moon), document.createTextNode('Nightfall'));
+      this.nfBtn.title = '';
+    } else {
+      add(this.nfBtn, ico(ICON.clock), document.createTextNode(`Night in 0:${String(s).padStart(2, '0')}`));
+      this.nfBtn.title = 'Lantern Rush: the next night starts when the clock runs out. Click to start it now.';
     }
   }
 
