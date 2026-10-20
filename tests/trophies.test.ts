@@ -28,6 +28,13 @@ describe('trophies', () => {
     expect(dawnTrophies(20, clean)).toEqual(['win', 'perfect20', 'noup20', 'perfectGame']);
   });
 
+  it('a Lantern Rush run adds the rush trophy at each milestone', () => {
+    expect(dawnTrophies(5, clean, true)).toEqual(['night5', 'rush5', 'perfect5']);
+    expect(dawnTrophies(10, { hurt: true, upgraded: true }, true)).toEqual(['night10', 'rush10']);
+    expect(dawnTrophies(20, { hurt: true, upgraded: true }, true)).toEqual(['win', 'rushWin']);
+    expect(dawnTrophies(6, clean, true)).toEqual([]);
+  });
+
   it('losing a heart or upgrading rules out the matching trophies', () => {
     expect(dawnTrophies(20, { hurt: true, upgraded: false })).toEqual(['win', 'noup20']);
     expect(dawnTrophies(20, { hurt: false, upgraded: true })).toEqual(['win', 'perfect20']);

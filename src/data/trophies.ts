@@ -8,7 +8,8 @@ export type TrophyId =
   | 'perfect5' | 'perfect10' | 'perfect15' | 'perfect20' | 'perfectGame'
   | 'gold100' | 'gold500' | 'gold1000' | 'gold5000'
   | 'unlock_catapult' | 'unlock_sprinkler' | 'unlock_lantern' | 'unlock_owl' | 'allTowers'
-  | 'king' | 'destroyer' | 'lost';
+  | 'king' | 'destroyer' | 'lost'
+  | 'rush5' | 'rush10' | 'rush15' | 'rushWin';
 
 /** Frame colour on the shelf: bronze, silver, gold, or the lantern-glow top tier. */
 export type TrophyTier = 1 | 2 | 3 | 4;
@@ -24,7 +25,7 @@ export interface TrophyDef {
   icon: string;
 }
 
-export const SHELVES = ['The Long Night', 'Flawless', 'The Old Ways', 'Treasure', 'Discoveries', 'Odd Moments'];
+export const SHELVES = ['The Long Night', 'Flawless', 'The Old Ways', 'Treasure', 'Discoveries', 'Odd Moments', 'Lantern Rush'];
 
 const T = (id: TrophyId, name: string, desc: string, shelf: number, tier: TrophyTier, icon = `trophy_${id}`): TrophyDef =>
   ({ id, name, desc, shelf, tier, icon });
@@ -58,6 +59,11 @@ export const TROPHIES: TrophyDef[] = [
   T('king', 'Smashing Pumpkins', 'Defeat the Pumpkin King.', 5, 3),
   T('destroyer', 'Destroyer of Worlds', 'Have one of your towers blown sky-high by a lumberjack.', 5, 2),
   T('lost', "Soup's On", 'Let the zombies into the cottage. They were only hungry.', 5, 1),
+
+  T('rush5', 'Quick Feet', 'Survive the first 5 nights of Lantern Rush.', 6, 1),
+  T('rush10', 'Second Wind', 'Survive the first 10 nights of Lantern Rush.', 6, 2),
+  T('rush15', 'No Time for Naps', 'Survive the first 15 nights of Lantern Rush.', 6, 3),
+  T('rushWin', 'Rush Hour', `Survive all ${TOTAL_NIGHTS} nights of Lantern Rush.`, 6, 4),
 ];
 
 export const TROPHY_BY_ID = Object.fromEntries(TROPHIES.map((t) => [t.id, t])) as Record<TrophyId, TrophyDef>;
@@ -72,10 +78,11 @@ export interface RunRecord {
 
 const MILESTONES = [5, 10, 15, 20];
 
-/** Trophies earned at the dawn after night `n`. */
-export function dawnTrophies(n: number, run: RunRecord): TrophyId[] {
+/** Trophies earned at the dawn after night `n`; a Lantern Rush run also earns the rush shelf. */
+export function dawnTrophies(n: number, run: RunRecord, rush = false): TrophyId[] {
   if (!MILESTONES.includes(n) || n > TOTAL_NIGHTS) return [];
   const out: TrophyId[] = [n === TOTAL_NIGHTS ? 'win' : `night${n}` as TrophyId];
+  if (rush) out.push(n === TOTAL_NIGHTS ? 'rushWin' : `rush${n}` as TrophyId);
   if (!run.hurt) out.push(`perfect${n}` as TrophyId);
   if (!run.upgraded && n >= 15) out.push(`noup${n}` as TrophyId);
   if (n === TOTAL_NIGHTS && !run.hurt && !run.upgraded) out.push('perfectGame');

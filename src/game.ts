@@ -408,7 +408,7 @@ export class Game {
     if (interest) this.hud.toast(`Piggy bank interest: <b>+${interest}</b> gold`, ICON.coin);
     this.nightN++;
     const won = n === TOTAL_NIGHTS && !this.endless;
-    this.trophyRoom.award([...dawnTrophies(n, this.run), ...(won ? goldTrophies(this.gold) : [])]);
+    this.trophyRoom.award([...dawnTrophies(n, this.run, this.mode.dayTimer !== null), ...(won ? goldTrophies(this.gold) : [])]);
 
     if (won) {
       this.phase = 'over';
