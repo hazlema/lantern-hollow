@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { existsSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { TROPHIES, SHELVES, dawnTrophies, goldTrophies, researchTrophies } from '../src/data/trophies';
+import { TROPHIES, SHELVES, RENAMED, TROPHY_BY_ID, dawnTrophies, goldTrophies, researchTrophies } from '../src/data/trophies';
 import type { TechId } from '../src/data/tech';
 
 const clean = { hurt: false, upgraded: false };
@@ -22,23 +22,29 @@ describe('trophies', () => {
   });
 
   it('a clean run collects night, perfect and no-upgrade trophies', () => {
-    expect(dawnTrophies(5, clean)).toEqual(['night5', 'perfect5']);
-    expect(dawnTrophies(10, clean)).toEqual(['night10', 'perfect10']);
-    expect(dawnTrophies(15, clean)).toEqual(['night15', 'perfect15', 'noup15']);
-    expect(dawnTrophies(20, clean)).toEqual(['win', 'perfect20', 'noup20', 'perfectGame']);
+    expect(dawnTrophies(5, clean)).toEqual(['easy5', 'perfect5']);
+    expect(dawnTrophies(10, clean)).toEqual(['easy10', 'perfect10']);
+    expect(dawnTrophies(15, clean)).toEqual(['easy15', 'perfect15', 'noup15']);
+    expect(dawnTrophies(20, clean)).toEqual(['easyWin', 'perfect20', 'noup20', 'perfectGame']);
   });
 
-  it('a Lantern Rush run adds the rush trophy at each milestone', () => {
-    expect(dawnTrophies(5, clean, true)).toEqual(['night5', 'rush5', 'perfect5']);
-    expect(dawnTrophies(10, { hurt: true, upgraded: true }, true)).toEqual(['night10', 'rush10']);
-    expect(dawnTrophies(20, { hurt: true, upgraded: true }, true)).toEqual(['win', 'rushWin']);
-    expect(dawnTrophies(6, clean, true)).toEqual([]);
+  it('each mode earns its own night trophies, and only its own', () => {
+    expect(dawnTrophies(5, clean, 'medium')).toEqual(['medium5', 'perfect5']);
+    expect(dawnTrophies(10, { hurt: true, upgraded: true }, 'hard')).toEqual(['hard10']);
+    expect(dawnTrophies(15, { hurt: true, upgraded: true }, 'rush')).toEqual(['rush15']);
+    expect(dawnTrophies(20, { hurt: true, upgraded: true }, 'hard')).toEqual(['hardWin']);
+    expect(dawnTrophies(20, { hurt: true, upgraded: true }, 'rush')).toEqual(['rushWin']);
+    expect(dawnTrophies(6, clean, 'rush')).toEqual([]);
+  });
+
+  it('old mode-less night trophies map onto real Easy trophies', () => {
+    for (const id of Object.values(RENAMED)) expect(TROPHY_BY_ID[id]?.shelf).toBe(SHELVES.indexOf('Easy Nights'));
   });
 
   it('losing a heart or upgrading rules out the matching trophies', () => {
-    expect(dawnTrophies(20, { hurt: true, upgraded: false })).toEqual(['win', 'noup20']);
-    expect(dawnTrophies(20, { hurt: false, upgraded: true })).toEqual(['win', 'perfect20']);
-    expect(dawnTrophies(15, { hurt: true, upgraded: true })).toEqual(['night15']);
+    expect(dawnTrophies(20, { hurt: true, upgraded: false })).toEqual(['easyWin', 'noup20']);
+    expect(dawnTrophies(20, { hurt: false, upgraded: true })).toEqual(['easyWin', 'perfect20']);
+    expect(dawnTrophies(15, { hurt: true, upgraded: true })).toEqual(['easy15']);
   });
 
   it('gold trophies stack by threshold', () => {

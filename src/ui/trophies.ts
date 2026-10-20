@@ -1,7 +1,7 @@
 // The trophy room: a wooden cabinet of everything you've earned across every game,
 // plus the gold "Trophy unlocked!" card that slides in when you earn one.
 import { audio } from '../audio';
-import { SHELVES, TROPHIES, TROPHY_BY_ID, type TrophyId } from '../data/trophies';
+import { RENAMED, SHELVES, TROPHIES, TROPHY_BY_ID, type TrophyId } from '../data/trophies';
 import { h, ico } from './dom';
 import { ICON, iconUrl } from './icons';
 
@@ -15,6 +15,11 @@ export class TrophyCase {
 
   constructor() {
     try { this.earned = JSON.parse(localStorage.getItem(STORE_KEY) ?? '{}'); } catch { this.earned = {}; }
+    // carry trophies over from before the difficulty split
+    const old = this.earned as Record<string, Earned>;
+    const moved = Object.keys(RENAMED).filter((id) => old[id]);
+    for (const id of moved) { old[RENAMED[id]] ??= old[id]; delete old[id]; }
+    if (moved.length) this.persist();
   }
 
   has(id: TrophyId) { return !!this.earned[id]; }
