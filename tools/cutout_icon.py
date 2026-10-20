@@ -1,4 +1,5 @@
 # Usage: python3 tools/cutout_icon.py render.png public/art/icons/name.webp
+#        python3 tools/cutout_icon.py --hero render.png public/art/name_hero.webp  (keeps aspect, 600px tall)
 # Cut a cream-background render out to a transparent 256px icon: flood-fill the
 # background from the borders, feather the edge, crop to content, pad to square.
 import sys
@@ -6,7 +7,7 @@ from collections import deque
 import numpy as np
 from PIL import Image, ImageFilter
 
-def cutout(src, dst, size=256, tol=34, soft=18):
+def cutout(src, dst, size=256, tol=34, soft=18, hero=False):
     im = Image.open(src).convert('RGB')
     a = np.asarray(im).astype(np.int32)
     h, w, _ = a.shape
@@ -41,10 +42,14 @@ def cutout(src, dst, size=256, tol=34, soft=18):
     out = Image.fromarray(np.dstack([rgb, alpha * 255]).astype(np.uint8), 'RGBA')
     bbox = out.getchannel('A').point(lambda v: 255 if v > 12 else 0).getbbox()
     out = out.crop(bbox)
+    if hero:
+        out.resize((round(out.width * 600 / out.height), 600), Image.LANCZOS).save(dst, 'WEBP', quality=90, method=6)
+        return
     side = int(max(out.size) * 1.06)
     sq = Image.new('RGBA', (side, side), (0, 0, 0, 0))
     sq.paste(out, ((side - out.width) // 2, (side - out.height) // 2))
     sq.resize((size, size), Image.LANCZOS).save(dst, 'WEBP', quality=90, method=6)
 
 if __name__ == '__main__':
-    cutout(sys.argv[1], sys.argv[2])
+    args = [a for a in sys.argv[1:] if a != '--hero']
+    cutout(args[0], args[1], hero='--hero' in sys.argv)

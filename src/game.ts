@@ -205,8 +205,27 @@ export class Game {
     const firstTime = !localStorage.getItem(TUT_KEY);
     this.tutorial = -1;
     this.enterBuild(true);
-    // let the camera finish its swoop, then walk new players through the controls
-    if (firstTime) setTimeout(() => { if (this.phase === 'build') this.startTour(); }, 1600);
+    // let the camera finish its swoop, then explain Rush and/or walk new players through the controls
+    const tour = () => { if (firstTime && this.phase === 'build') this.startTour(); };
+    setTimeout(() => (this.mode.dayTimer !== null ? this.announceRush(tour) : tour()), 1600);
+  }
+
+  private announceRush(then: () => void) {
+    if (this.phase !== 'build' || this.announcer.active) return then();
+    const secs = this.mode.dayTimer;
+    this.announcer.show({
+      image: '/art/rush_hero.webp',
+      stamp: 'RUSH!',
+      kicker: 'Lantern Rush',
+      title: 'No rest for the cozy!',
+      lead: ['Take your time on the first night.', `After that, each dawn gives you just ${secs} seconds.`],
+      tips: [
+        { icon: ICON.moon, html: 'Build at your own pace, then press <b>Nightfall</b> to start night one.' },
+        { icon: ICON.clock, html: `After every dawn the Nightfall button counts down from <b>${secs}</b>. At zero, here they come.` },
+        { icon: ICON.ff, html: (isTouch ? 'Tap' : 'Click') + ' the countdown' + (isTouch ? '' : ' (Space)') + ' to call the night early.' },
+      ],
+      button: 'Good luck!',
+    }, then);
   }
 
   private announceLumberjacks() {

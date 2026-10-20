@@ -11,6 +11,8 @@ export interface Announcement {
   lead: string[];
   tips: { icon: string; html: string }[];
   button: string;
+  /** badge stamped on the art (default "NEW!") */
+  stamp?: string;
 }
 
 export class Announcer {
@@ -36,7 +38,7 @@ export class Announcer {
     const art = h('div', { class: 'art' },
       h('div', { class: 'rays' }),
       h('img', { attrs: { src: a.image, alt: '', draggable: 'false' } }),
-      h('div', { class: 'stamp', text: 'NEW!' }),
+      h('div', { class: 'stamp', text: a.stamp ?? 'NEW!' }),
       ...Array.from({ length: 7 }, (_, i) => h('i', { class: 'chip', style: `--d:${i * 0.45}s;--x:${(i * 37) % 100}%` })),
     );
     const words = h('div', { class: 'words' });
