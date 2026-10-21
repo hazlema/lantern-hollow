@@ -12,15 +12,17 @@ export interface ModeDef {
   /** zombie health multiplier; Easy's 1.06 is the original "pretty balanced, a smidge harder" tuning.
    *  Medium is half again as tough and Hard doubles it (Hard at 3x was a pure numbers game by night 6). */
   hp: number;
+  /** multiplier on kill gold and the dawn bonus: tougher zombies pay better, and repairs cost more */
+  gold: number;
   /** seconds of daylight between nights, or null to wait for Nightfall */
   dayTimer: number | null;
 }
 
 export const MODES: Record<ModeId, ModeDef> = {
-  easy: { id: 'easy', name: 'Easy', blurb: 'The cozy classic. Take your time between nights.', hp: 1.06, dayTimer: null },
-  medium: { id: 'medium', name: 'Medium', blurb: 'Zombies take half again the beating to fall.', hp: 1.5, dayTimer: null },
-  hard: { id: 'hard', name: 'Hard', blurb: 'Double-tough zombies. Every tower counts.', hp: 2, dayTimer: null },
-  rush: { id: 'rush', name: 'Lantern Rush', blurb: 'No waiting for Nightfall. Each dawn gives you 15 seconds, then they come again.', hp: 1.06, dayTimer: 15 },
+  easy: { id: 'easy', name: 'Easy', blurb: 'The cozy classic. Take your time between nights.', hp: 1.06, gold: 1, dayTimer: null },
+  medium: { id: 'medium', name: 'Medium', blurb: 'Zombies take half again the beating to fall.', hp: 1.5, gold: 1.15, dayTimer: null },
+  hard: { id: 'hard', name: 'Hard', blurb: 'Double-tough zombies. Every tower counts.', hp: 2, gold: 1.3, dayTimer: null },
+  rush: { id: 'rush', name: 'Lantern Rush', blurb: 'No waiting for Nightfall. Each dawn gives you 15 seconds, then they come again.', hp: 1.06, gold: 1, dayTimer: 15 },
 };
 
 export const MODE_ORDER: ModeId[] = ['easy', 'medium', 'hard', 'rush'];

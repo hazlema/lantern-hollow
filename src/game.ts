@@ -347,6 +347,7 @@ export class Game {
   private setMode(m: ModeDef) {
     this.mode = m;
     this.world.hpMult = m.hp;
+    this.world.goldMult = m.gold;
     this.hud.setMode(m.name, m.dayTimer !== null);
   }
 
@@ -397,7 +398,7 @@ export class Game {
   private dawn() {
     const n = this.nightN;
     const flawless = this.lives >= this.livesAtNightStart;
-    const bonus = dawnBonus(n);
+    const bonus = Math.round(dawnBonus(n) * this.mode.gold);
     const em = dawnEmbers(n, flawless);
     let interest = 0;
     if (this.mods.interest) interest = Math.min(50, Math.floor(this.gold * 0.05));

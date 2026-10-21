@@ -53,6 +53,8 @@ export class World implements Ctx {
   private nightN = 1;
   /** the game mode's zombie health multiplier (see data/modes) */
   hpMult = 1.06;
+  /** ...and its gold multiplier */
+  goldMult = 1;
   private scr = { x: 0, y: 0 };
   private tmp = new THREE.Vector3();
   private bossCount = 0;
@@ -129,7 +131,7 @@ export class World implements Ctx {
     this.fx.decals.spawn('splat', p.x, p.z, { color: 0x7fae4a, r0: z.boss ? 0.8 : 0.28, r1: z.boss ? 1.1 : 0.36, life: 3, alpha: 0.55 });
     this.sfx('zombie_die', p, z.boss ? 1 : 0.8);
     if (z.boss) { this.shake(0.4); this.sfx('boss_roar', p, 0.8); }
-    const gold = Math.max(1, Math.round(z.goldValue * this.mods.goldMult));
+    const gold = Math.max(1, Math.round(z.goldValue * this.mods.goldMult * this.goldMult));
     this.tmp.set(p.x, z.rig.height + 0.2, p.z);
     this.stage.project(this.tmp, this.scr);
     // coins burst out

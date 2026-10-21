@@ -64,7 +64,7 @@ export function upgradeCost(def: TowerDef, level: number): number {
 /** Per-level stat multipliers (level is 1-based). */
 export function levelMult(level: number) {
   const l = level - 1;
-  return { damage: 1 + 0.45 * l, rate: 1 + 0.12 * l, range: 1 + 0.1 * l };
+  return { damage: 1 + 0.7 * l, rate: 1 + 0.12 * l, range: 1 + 0.1 * l };
 }
 
 export const SELL_REFUND = 0.7;
